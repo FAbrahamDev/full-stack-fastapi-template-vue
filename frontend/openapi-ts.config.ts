@@ -1,9 +1,7 @@
-import { createClient } from '@hey-api/openapi-ts';
+import { defineConfig } from '@hey-api/openapi-ts';
 
-createClient({
+export default defineConfig({
   client: '@hey-api/client-axios',
-  input: './openapi.json',
-  output: './client',
+  input: 'openapi.json',
+  output: 'src/client',
 });
-
-
