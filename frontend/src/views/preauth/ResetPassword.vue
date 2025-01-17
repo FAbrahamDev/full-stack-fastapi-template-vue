@@ -1,5 +1,11 @@
 <template>
-  <Form v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4">
+  <Form
+    v-slot="$form"
+    :initial-values="initialValues"
+    :resolver="resolver"
+    @submit="onFormSubmit"
+    class="flex flex-col gap-4"
+  >
     <h1 class="text-2xl font-bold text-center mb-2">Reset Password</h1>
 
     <p class="text-center">
@@ -51,89 +57,92 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { zodResolver } from '@primevue/forms/resolvers/zod'
-import { z } from 'zod'
-import { useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
-import { useAuth } from '@/composables/useAuth'
+import { reactive, ref } from "vue";
+import { zodResolver } from "@primevue/forms/resolvers/zod";
+import { z } from "zod";
+import { useRouter } from "vue-router";
+import { useToast } from "primevue/usetoast";
+import { useAuth } from "@/composables/useAuth";
 
-const { isLoggedIn } = useAuth()
-const router = useRouter()
-const toast = useToast()
+const { isLoggedIn } = useAuth();
+const router = useRouter();
+const toast = useToast();
 
 interface FormValues {
-  new_password: string
-  confirm_password: string
+  new_password: string;
+  confirm_password: string;
 }
 
 const initialValues = reactive<FormValues>({
-  new_password: '',
-  confirm_password: ''
-})
+  new_password: "",
+  confirm_password: "",
+});
 
 const resolver = zodResolver(
-  z.object({
-    new_password: z.string()
-      .min(3, { message: 'Minimum 3 characters.' })
-      .refine((value) => /[a-z]/.test(value), {
-        message: 'Must have a lowercase letter.'
-      })
-      .refine((value) => /[A-Z]/.test(value), {
-        message: 'Must have an uppercase letter.'
-      })
-      .refine((value) => /\d/.test(value), {
-        message: 'Must have a number.'
-      }),
-    confirm_password: z.string()
-  }).refine((data) => data.new_password === data.confirm_password, {
-    message: "Passwords don't match",
-    path: ["confirm_password"],
-  })
-)
+  z
+    .object({
+      new_password: z
+        .string()
+        .min(3, { message: "Minimum 3 characters." })
+        .refine((value) => /[a-z]/.test(value), {
+          message: "Must have a lowercase letter.",
+        })
+        .refine((value) => /[A-Z]/.test(value), {
+          message: "Must have an uppercase letter.",
+        })
+        .refine((value) => /\d/.test(value), {
+          message: "Must have a number.",
+        }),
+      confirm_password: z.string(),
+    })
+    .refine((data) => data.new_password === data.confirm_password, {
+      message: "Passwords don't match",
+      path: ["confirm_password"],
+    }),
+);
 
-const error = ref<string>('')
+const error = ref<string>("");
 
 interface SubmitEvent {
-  valid: boolean
-  values: FormValues
+  valid: boolean;
+  values: FormValues;
 }
 
 const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return
+  if (!valid) return;
 
-  const token = new URLSearchParams(window.location.search).get('token')
+  const token = new URLSearchParams(window.location.search).get("token");
   if (!token) {
-    error.value = 'Reset token is missing'
-    return
+    error.value = "Reset token is missing";
+    return;
   }
 
   try {
     await LoginService.resetPassword({
       requestBody: {
         new_password: values.new_password,
-        token
-      }
-    })
+        token,
+      },
+    });
 
     toast.add({
-      severity: 'success',
-      summary: 'Success!',
-      detail: 'Password updated successfully.',
-      life: 3000
-    })
+      severity: "success",
+      summary: "Success!",
+      detail: "Password updated successfully.",
+      life: 3000,
+    });
 
-    initialValues.new_password = ''
-    initialValues.confirm_password = ''
+    initialValues.new_password = "";
+    initialValues.confirm_password = "";
 
-    router.push('/login')
+    router.push("/login");
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Password reset failed'
+    error.value = err instanceof Error ? err.message : "Password reset failed";
   }
-}
+};
 
 // Route guard
 if (isLoggedIn()) {
-  router.push('/')
+  router.push("/");
 }
 </script>

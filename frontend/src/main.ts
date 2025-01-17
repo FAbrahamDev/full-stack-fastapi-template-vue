@@ -1,19 +1,19 @@
-import { createApp } from 'vue'
-import './style.css'
-import 'primeicons/primeicons.css'
+import { createApp } from "vue";
+import "./style.css";
+import "primeicons/primeicons.css";
 
-import App from './App.vue'
-import {registerPlugins} from "@/plugins";
+import App from "./App.vue";
+import { registerPlugins } from "@/plugins";
 
-import { client } from '@/client';
+import { client } from "@/client";
 
 client.setConfig({
   auth: () => localStorage.getItem("access_token") || "",
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-const app = createApp(App)
+const app = createApp(App);
 
-registerPlugins(app)
+registerPlugins(app);
 
-app.mount('#app')
+app.mount("#app");

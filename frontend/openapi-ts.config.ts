@@ -1,21 +1,21 @@
-import {defineConfig} from '@hey-api/openapi-ts';
+import { defineConfig } from "@hey-api/openapi-ts";
 
 export default defineConfig({
-  client: '@hey-api/client-axios',
-  input: 'http://localhost:8000/api/v1/openapi.json',
+  client: "@hey-api/client-axios",
+  input: "http://localhost:8000/api/v1/openapi.json",
   output: {
-    format: 'prettier',
-    lint: 'eslint',
-    path: './src/client',
+    format: "prettier",
+    lint: "eslint",
+    path: "./src/client",
   },
   plugins: [
     {
       dates: true,
-      name: '@hey-api/transformers',
+      name: "@hey-api/transformers",
     },
     {
-      enums: 'javascript',
-      name: '@hey-api/typescript',
+      enums: "javascript",
+      name: "@hey-api/typescript",
     },
     {
       name: "@hey-api/sdk",
@@ -24,6 +24,6 @@ export default defineConfig({
       operationId: true,
       transformer: true,
     },
-    '@tanstack/vue-query',
+    "@tanstack/vue-query",
   ],
 });

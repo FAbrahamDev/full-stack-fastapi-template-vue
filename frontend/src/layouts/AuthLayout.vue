@@ -9,7 +9,7 @@
             src="../assets/images/fastapi-logo-text.svg"
             alt="Logo"
             class="h-12 w-auto mx-auto mb-5"
-          >
+          />
         </template>
         <template #content>
           <RouterView />

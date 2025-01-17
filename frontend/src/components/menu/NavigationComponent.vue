@@ -1,114 +1,142 @@
-<script setup lang="ts">
-import { ref } from 'vue';
-import Menu from 'primevue/menu';
-import { Home, MessageCircle, Users, Grid, Video, Settings } from 'lucide-vue-next';
-
-const navigationItems = ref([
-  {
-    label: 'Logo',
-    icon: 'logo',
-    class: 'mb-4'
-  },
-  {
-    label: 'Home',
-    icon: Home,
-    class: 'mb-2'
-  },
-  {
-    label: 'Messages',
-    icon: MessageCircle,
-    class: 'mb-2'
-  },
-  {
-    label: 'Users',
-    icon: Users,
-    class: 'mb-2'
-  },
-  {
-    label: 'Grid',
-    icon: Grid,
-    class: 'mb-2'
-  },
-  {
-    label: 'Video',
-    icon: Video,
-    class: 'mb-2'
-  }
-]);
-
-const bottomItems = ref([
-  {
-    label: 'Settings',
-    icon: Settings,
-    class: 'mb-2'
-  },
-  {
-    label: 'Profile',
-    icon: 'profile',
-    class: ''
-  }
-]);
-</script>
-
 <template>
-  <div class="flex h-screen">
-    <nav class="w-16 bg-gray-900 flex flex-col items-center py-4">
-      <!-- Top Navigation Items -->
-      <div class="flex flex-col items-center mb-auto">
-        <template v-for="item in navigationItems" :key="item.label">
-          <!-- Logo Item -->
-          <div v-if="item.icon === 'logo'" :class="['flex items-center justify-center w-12 h-12', item.class]">
-            <img src="/logo.svg" alt="Logo" class="w-8 h-8" />
-          </div>
-          <!-- Navigation Icons -->
-          <div
-            v-else
-            :class="[
-              'flex items-center justify-center w-12 h-12 text-gray-400',
-              'hover:text-white hover:bg-gray-800 rounded-lg',
-              item.class
-            ]"
-          >
-            <component :is="item.icon" class="w-6 h-6" />
-          </div>
-        </template>
+  <Menubar :model="items">
+    <template #start>
+      <img
+        src="@/assets/images/fastapi-logo.svg"
+        alt="Logo"
+        class="h-8 w-auto mx-auto"
+      />
+    </template>
+    <template #item="{ item, props, hasSubmenu }">
+      <router-link
+        v-if="item.route"
+        v-slot="{ href, navigate }"
+        :to="item.route"
+        custom
+      >
+        <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+          <span :class="item.icon" />
+          <span>{{ item.label }}</span>
+          <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
+        </a>
+      </router-link>
+      <a
+        v-else
+        v-ripple
+        :href="item.url"
+        :target="item.target"
+        v-bind="props.action"
+        @click="
+          item.command
+            ? ($event) => handleCommand($event, item.command)
+            : undefined
+        "
+      >
+        <span :class="item.icon" />
+        <span>{{ item.label }}</span>
+        <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
+        <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down ml-2" />
+      </a>
+    </template>
+    <template #end>
+      <div class="flex items-center gap-2">
+        <Button
+          icon="pi pi-sun"
+          @click="toggleDarkMode"
+          variant="text"
+          size="small"
+        />
+        <UserMenu />
       </div>
-
-      <!-- Bottom Items -->
-      <div class="flex flex-col items-center">
-        <template v-for="item in bottomItems" :key="item.label">
-          <!-- Settings Icon -->
-          <div
-            v-if="item.icon === Settings"
-            :class="[
-              'flex items-center justify-center w-12 h-12 text-gray-400',
-              'hover:text-white hover:bg-gray-800 rounded-lg',
-              item.class
-            ]"
-          >
-            <component :is="item.icon" class="w-6 h-6" />
-          </div>
-          <!-- Profile Image -->
-          <div
-            v-else
-            :class="['flex items-center justify-center w-12 h-12', item.class]"
-          >
-            <img
-              src="/profile-placeholder.jpg"
-              alt="Profile"
-              class="w-8 h-8 rounded-full border-2 border-gray-700"
-            />
-          </div>
-        </template>
-      </div>
-    </nav>
-
-    <main class="flex-1">
-      <RouterView />
-    </main>
-  </div>
+    </template>
+  </Menubar>
 </template>
 
+<script setup lang="ts">
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useAuth } from "@/composables/useAuth";
+import UserMenu from "@/components/menu/UserMenu.vue";
+
+const router = useRouter();
+const { user } = useAuth();
+
+interface MenuItem {
+  label: string;
+  icon: string;
+  route?: string;
+  url?: string;
+  target?: string;
+  command?: () => void;
+  badge?: string;
+  items?: MenuItem[];
+}
+
+const baseItems = ref<MenuItem[]>([
+  {
+    label: "Home",
+    icon: "pi pi-home",
+    route: "/",
+  },
+  {
+    label: "Items",
+    icon: "pi pi-shopping-bag",
+    route: "/items",
+  },
+  {
+    label: "User Settings",
+    icon: "pi pi-cog",
+    route: "/settings",
+  },
+]);
+
+const adminMenuItem: MenuItem = {
+  label: "Admin",
+  icon: "pi pi-users",
+  route: "/admin",
+};
+
+const items = computed(() => {
+  const menuItems = [...baseItems.value];
+
+  console.log(user.value);
+  if (user.value?.is_superuser) {
+    menuItems.push(adminMenuItem);
+  }
+  return menuItems;
+});
+
+function handleCommand(event: Event, command: () => void) {
+  event.preventDefault();
+  command();
+}
+
+function toggleDarkMode() {
+  // also set localStorage.setItem("colorMode", value);
+
+  localStorage.setItem(
+    "colorMode",
+    document.documentElement.classList.contains("dark-mode")
+      ? "light-mode"
+      : "dark-mode",
+  );
+
+  document.documentElement.classList.toggle("dark-mode");
+}
+</script>
+
 <style scoped>
-/* Add any additional custom styles here */
+:deep(.p-menubar) {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+}
+
+:deep(.p-menuitem-link) {
+  padding: 0.75rem 1rem;
+}
+
+:deep(.p-menuitem-icon) {
+  margin-right: 0.5rem;
+}
 </style>

@@ -1,29 +1,68 @@
 <template>
-  <Form v-slot="$form" :initial-values="initialValues" :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4">
+  <Form
+    v-slot="$form"
+    :initial-values="initialValues"
+    :resolver="resolver"
+    @submit="onFormSubmit"
+    class="flex flex-col gap-4"
+  >
     <div class="flex flex-col gap-1">
-      <InputText name="full_name" type="text" placeholder="Full Name"  fluid />
-      <Message v-if="$form.full_name?.invalid" severity="error" size="small" variant="simple">
+      <InputText name="full_name" type="text" placeholder="Full Name" fluid />
+      <Message
+        v-if="$form.full_name?.invalid"
+        severity="error"
+        size="small"
+        variant="simple"
+      >
         {{ $form.full_name.error?.message }}
       </Message>
     </div>
 
     <div class="flex flex-col gap-1">
       <InputText name="email" type="email" placeholder="Email" fluid />
-      <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
+      <Message
+        v-if="$form.email?.invalid"
+        severity="error"
+        size="small"
+        variant="simple"
+      >
         {{ $form.email.error?.message }}
       </Message>
     </div>
 
     <div class="flex flex-col gap-1">
-      <Password name="password" placeholder="Password" fluid toggle-mask :feedback="false" />
+      <Password
+        name="password"
+        placeholder="Password"
+        fluid
+        toggle-mask
+        :feedback="false"
+      />
       <template v-if="$form.password?.invalid">
-        <Message v-for="(error, index) of $form.password.errors" :key="index" severity="error" size="small" variant="simple">{{ error.message }}</Message>
+        <Message
+          v-for="(error, index) of $form.password.errors"
+          :key="index"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ error.message }}</Message
+        >
       </template>
     </div>
 
     <div class="flex flex-col gap-1">
-      <Password name="confirm_password" placeholder="Confirm Password" fluid :feedback="false" />
-      <Message v-if="$form.confirm_password?.invalid" severity="error" size="small" variant="simple">
+      <Password
+        name="confirm_password"
+        placeholder="Confirm Password"
+        fluid
+        :feedback="false"
+      />
+      <Message
+        v-if="$form.confirm_password?.invalid"
+        severity="error"
+        size="small"
+        variant="simple"
+      >
         {{ $form.confirm_password.error?.message }}
       </Message>
     </div>
@@ -32,88 +71,96 @@
       {{ error }}
     </Message>
 
-    <Button type="submit" severity="secondary" label="Sign Up" :loading="signUpMutation.isPending.value" />
+    <Button
+      type="submit"
+      severity="secondary"
+      label="Sign Up"
+      :loading="signUpMutation.isPending.value"
+    />
 
     <div>
       Already have an account?
-      <RouterLink to="/login">
-        Log in
-      </RouterLink>
+      <RouterLink to="/login"> Log in </RouterLink>
     </div>
   </Form>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { zodResolver } from '@primevue/forms/resolvers/zod'
-import { z } from 'zod'
-import { useAuth } from '@/composables/useAuth'
-import { useRouter } from 'vue-router'
+import { reactive, ref } from "vue";
+import { zodResolver } from "@primevue/forms/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/composables/useAuth";
+import { useRouter } from "vue-router";
+import type { UserRegister } from "@/client";
 
-const { signUpMutation, resetError, isLoggedIn } = useAuth()
-const router = useRouter()
+const { signUpMutation, resetError, isLoggedIn } = useAuth();
+const router = useRouter();
 
-interface FormValues {
-  full_name: string
-  email: string
-  password: string
-  confirm_password: string
+interface FormValues extends UserRegister {
+  confirm_password: string;
 }
 
 const initialValues = reactive<FormValues>({
-  full_name: '',
-  email: '',
-  password: '',
-  confirm_password: ''
-})
+  full_name: "",
+  email: "",
+  password: "",
+  confirm_password: "",
+});
 
 const resolver = zodResolver(
-  z.object({
-    full_name: z.string()
-      .min(3, { message: 'Full name must be at least 3 characters.' }),
-    email: z.string()
-      .min(1, { message: 'Email is required.' })
-      .email({ message: 'Must be a valid email address.' }),
-    password: z.string()
-      .min(3, { message: 'Minimum 3 characters.' })
-      .refine((value) => /[a-z]/.test(value), {
-        message: 'Must have a lowercase letter.'
-      })
-      .refine((value) => /[A-Z]/.test(value), {
-        message: 'Must have an uppercase letter.'
-      })
-      .refine((value) => /\d/.test(value), {
-        message: 'Must have a number.'
-      }),
-    confirm_password: z.string()
-  }).refine((data) => data.password === data.confirm_password, {
-    message: "Passwords don't match",
-    path: ["confirm_password"],
-  })
-)
+  z
+    .object({
+      full_name: z
+        .string()
+        .min(3, { message: "Full name must be at least 3 characters." }),
+      email: z
+        .string()
+        .min(1, { message: "Email is required." })
+        .email({ message: "Must be a valid email address." }),
+      password: z
+        .string()
+        .min(3, { message: "Minimum 3 characters." })
+        .refine((value) => /[a-z]/.test(value), {
+          message: "Must have a lowercase letter.",
+        })
+        .refine((value) => /[A-Z]/.test(value), {
+          message: "Must have an uppercase letter.",
+        })
+        .refine((value) => /\d/.test(value), {
+          message: "Must have a number.",
+        }),
+      confirm_password: z.string(),
+    })
+    .refine((data) => data.password === data.confirm_password, {
+      message: "Passwords don't match",
+      path: ["confirm_password"],
+    }),
+);
 
-const error = ref<string>('')
+const error = ref<string>("");
 
 interface SubmitEvent {
-  valid: boolean
-  values: FormValues
+  valid: boolean;
+  values: FormValues;
 }
 
 const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return
-  console.log('onFormSubmit', { valid, values })
-  if (signUpMutation.isPending.value) return
+  if (!valid) return;
+  console.log("onFormSubmit", { valid, values });
+  if (signUpMutation.isPending.value) return;
 
-  resetError()
+  resetError();
+
+  console.log("signUpMutation", signUpMutation);
 
   try {
-    await signUpMutation.mutateAsync(values)
+    await signUpMutation.mutateAsync({ body: values });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Registration failed'
+    error.value = err instanceof Error ? err.message : "Registration failed";
   }
-}
+};
 
 if (isLoggedIn()) {
-  router.push('/')
+  router.push("/");
 }
 </script>
