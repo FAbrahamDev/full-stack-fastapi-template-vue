@@ -1,45 +1,37 @@
+<!-- Template -->
 <template>
-  <Menubar :model="items">
-    <template #start>
-      <img
-        src="@/assets/images/fastapi-logo.svg"
-        alt="Logo"
-        class="h-8 w-auto mx-auto"
-      />
-    </template>
-    <template #item="{ item, props, hasSubmenu }">
-      <router-link
-        v-if="item.route"
-        v-slot="{ href, navigate }"
-        :to="item.route"
-        custom
-      >
-        <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-          <span :class="item.icon" />
-          <span>{{ item.label }}</span>
-          <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
-        </a>
-      </router-link>
-      <a
-        v-else
-        v-ripple
-        :href="item.url"
-        :target="item.target"
-        v-bind="props.action"
-        @click="
-          item.command
-            ? ($event) => handleCommand($event, item.command)
-            : undefined
-        "
-      >
-        <span :class="item.icon" />
-        <span>{{ item.label }}</span>
-        <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
-        <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down ml-2" />
-      </a>
-    </template>
-    <template #end>
-      <div class="flex items-center gap-2">
+  <Card
+    :pt="{
+      body: 'h-full !px-3',
+      content: 'h-full flex flex-col justify-between',
+    }"
+  >
+    <template #content>
+      <div class="flex flex-col items-center gap-4">
+        <img
+          src="@/assets/images/fastapi-logo.svg"
+          alt="Logo"
+          class="h-8 w-auto mx-auto mb-5"
+        />
+
+        <router-link
+          v-for="item in items"
+          :key="item.label"
+          v-slot="{ href, navigate }"
+          :to="item.route"
+          custom
+          :v-tooltip="item.label"
+        >
+          <a v-ripple :href="href" @click="navigate" :aria-label="item.label">
+            <span :class="item.icon" />
+            <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
+          </a>
+        </router-link>
+      </div>
+
+      <div class="flex-1" />
+
+      <div class="flex flex-col items-center gap-2">
         <Button
           icon="pi pi-sun"
           @click="toggleDarkMode"
@@ -49,7 +41,7 @@
         <UserMenu />
       </div>
     </template>
-  </Menubar>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -67,7 +59,6 @@ interface MenuItem {
   route?: string;
   url?: string;
   target?: string;
-  command?: () => void;
   badge?: string;
   items?: MenuItem[];
 }
@@ -105,11 +96,6 @@ const items = computed(() => {
   }
   return menuItems;
 });
-
-function handleCommand(event: Event, command: () => void) {
-  event.preventDefault();
-  command();
-}
 
 function toggleDarkMode() {
   // also set localStorage.setItem("colorMode", value);
