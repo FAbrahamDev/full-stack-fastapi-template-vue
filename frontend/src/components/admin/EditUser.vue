@@ -98,7 +98,7 @@
           type="submit"
           label="Save"
           :loading="mutation.isPending.value"
-          :disabled="!$form.isDirty"
+          :disabled="!$form.valid"
         />
         <Button label="Cancel" severity="secondary" @click="onClose" />
       </div>
@@ -111,14 +111,23 @@ import { computed, reactive, ref } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
-import { UsersService, type UserPublic, type UserUpdate } from "@/client";
+import {
+  type UserPublic,
+  type UserUpdate,
+  type UsersUpdateUserMeResponse,
+  type UsersUpdateUserMeError,
+  type UsersUpdateUserMeData,
+} from "@/client";
 import { useToast } from "primevue/usetoast";
 
-import { Form } from "@primevue/forms";
+import { Form, type FormSubmitEvent } from "@primevue/forms";
+import { usersUpdateUserMeMutation } from "@/client/@tanstack/vue-query.gen.ts";
+import type { Options } from "@hey-api/client-axios";
+import type { AxiosError } from "axios";
 
 interface Props {
   modelValue: boolean;
-  user: UserPublic;
+  item: UserPublic;
 }
 
 const props = defineProps<Props>();
@@ -139,12 +148,12 @@ interface FormValues extends UserUpdate {
 }
 
 const initialValues = reactive<FormValues>({
-  email: props.user.email,
-  full_name: props.user.full_name || "",
+  email: props.item.email,
+  full_name: props.item.full_name || "",
   password: "",
   confirm_password: "",
-  is_superuser: props.user.is_superuser,
-  is_active: props.user.is_active,
+  is_superuser: props.item.is_superuser,
+  is_active: props.item.is_active,
 });
 
 const resolver = zodResolver(
@@ -184,12 +193,12 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-const mutation = useMutation({
-  mutationFn: (data: UserUpdate) =>
-    UsersService.updateUser({
-      userId: props.user.id,
-      requestBody: data,
-    }),
+const mutation = useMutation<
+  UsersUpdateUserMeResponse,
+  AxiosError<UsersUpdateUserMeError>,
+  Options<UsersUpdateUserMeData>
+>({
+  ...usersUpdateUserMeMutation(),
   onSuccess: () => {
     toast.add({
       severity: "success",
@@ -207,12 +216,7 @@ const mutation = useMutation({
   },
 });
 
-interface SubmitEvent {
-  valid: boolean;
-  values: FormValues;
-}
-
-const onSubmit = async ({ valid, values }: SubmitEvent) => {
+const onSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (!valid || mutation.isPending.value) return;
 
   error.value = "";
@@ -224,7 +228,7 @@ const onSubmit = async ({ valid, values }: SubmitEvent) => {
   }
 
   try {
-    await mutation.mutateAsync(submitData);
+    await mutation.mutateAsync({ body: submitData });
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Failed to update user";
   }
@@ -232,12 +236,12 @@ const onSubmit = async ({ valid, values }: SubmitEvent) => {
 
 const resetForm = () => {
   Object.assign(initialValues, {
-    email: props.user.email,
-    full_name: props.user.full_name || "",
+    email: props.item.email,
+    full_name: props.item.full_name || "",
     password: "",
     confirm_password: "",
-    is_superuser: props.user.is_superuser,
-    is_active: props.user.is_active,
+    is_superuser: props.item.is_superuser,
+    is_active: props.item.is_active,
   });
 };
 

@@ -47,11 +47,8 @@
           entityName="User"
           :value="slotProps.data"
           :onDelete="deleteItem"
-        >
-          <template #edit-modal="{ modelValue, item }">
-            <EditItem :modelValue="modelValue" :item="item" />
-          </template>
-        </ActionsMenu>
+          :edit-model-as="EditItem"
+        />
       </template>
     </Column>
 

@@ -12,38 +12,40 @@
 
     <Menu ref="menu" id="actions_menu" :model="menuItems" :popup="true" />
 
-    <!-- Dynamic slot for edit modal -->
-    <slot
-      name="edit-modal"
+    <component
       v-if="showEditModal"
-      :modelValue="showEditModal"
+      :is="editModalComponent"
+      v-model="showEditModal"
       :item="value"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, type Component } from "vue";
 import { useConfirm } from "primevue";
 import { useToast } from "primevue/usetoast";
 import type { MenuItem } from "primevue/menuitem";
 
-const confirm = useConfirm();
-const toast = useToast();
-
 interface Props<T> {
   value: T;
-  entityName: string; // e.g. "User" or "Item"
+  entityName: string;
   disabled?: boolean;
   onDelete?: (item: T) => Promise<void>;
+  editModelAs: Component;
 }
 
 const props = withDefaults(defineProps<Props<any>>(), {
   disabled: false,
 });
 
+const confirm = useConfirm();
+const toast = useToast();
 const menu = ref();
 const showEditModal = ref(false);
+
+// Compute the edit modal component
+const editModalComponent = computed(() => props.editModelAs);
 
 const menuItems = computed<MenuItem[]>(() => [
   {

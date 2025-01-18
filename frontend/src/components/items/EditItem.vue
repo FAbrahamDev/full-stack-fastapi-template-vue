@@ -157,11 +157,6 @@ const onClose = () => {
   resetForm();
   error.value = "";
   visible.value = false;
+  console.log(visible.value);
 };
 </script>
-
-<style scoped>
-:deep(.p-inputtext[fluid]) {
-  width: 100%;
-}
-</style>

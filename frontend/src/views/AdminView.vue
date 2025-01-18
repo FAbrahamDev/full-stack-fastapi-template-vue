@@ -64,11 +64,8 @@
           :value="slotProps.data"
           :onDelete="deleteUser"
           :disabled="currentUser?.id === slotProps.data.id"
-        >
-          <template #edit-modal="{ modelValue, item }">
-            <EditUser :modelValue="modelValue" :user="item" />
-          </template>
-        </ActionsMenu>
+          :edit-model-as="EditUser"
+        />
       </template>
     </Column>
 
