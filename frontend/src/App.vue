@@ -8,6 +8,7 @@ if (colorMode === "dark-mode")
 
 <template>
   <Toast />
+  <ConfirmDialog></ConfirmDialog>
   <RouterView />
 </template>
 

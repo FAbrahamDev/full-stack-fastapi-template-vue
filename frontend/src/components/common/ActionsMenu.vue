@@ -12,53 +12,95 @@
 
     <Menu ref="menu" id="actions_menu" :model="menuItems" :popup="true" />
 
-    <!-- Edit Modal -->
-    <EditUser v-if="type === 'User'" v-model="showEditModal" :user="value" />
-    <EditItem v-else v-model="showEditModal" :item="value" />
-
-    <!-- Delete Modal -->
-    <Delete v-model="showDeleteModal" :type="type" :id="value.id" />
+    <!-- Dynamic slot for edit modal -->
+    <slot
+      name="edit-modal"
+      v-if="showEditModal"
+      :modelValue="showEditModal"
+      :item="value"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useConfirm } from "primevue";
+import { useToast } from "primevue/usetoast";
 import type { MenuItem } from "primevue/menuitem";
-import type { ItemPublic, UserPublic } from "@/client";
-import Menu from "primevue/menu";
-import Button from "primevue/button";
-import EditUser from "@/components/admin/EditUser.vue";
-import EditItem from "@/components/items/EditItem.vue";
-import Delete from "@/components/common/DeleteAlert.vue";
 
-interface Props {
-  type: string;
-  value: ItemPublic | UserPublic;
+const confirm = useConfirm();
+const toast = useToast();
+
+interface Props<T> {
+  value: T;
+  entityName: string; // e.g. "User" or "Item"
   disabled?: boolean;
+  onDelete?: (item: T) => Promise<void>;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props<any>>(), {
   disabled: false,
 });
 
 const menu = ref();
 const showEditModal = ref(false);
-const showDeleteModal = ref(false);
 
 const menuItems = computed<MenuItem[]>(() => [
   {
-    label: `Edit ${props.type}`,
+    label: `Edit ${props.entityName}`,
     icon: "pi pi-pencil",
     command: () => {
       showEditModal.value = true;
     },
   },
   {
-    label: `Delete ${props.type}`,
+    label: `Delete ${props.entityName}`,
     icon: "pi pi-trash",
     class: "text-red-600",
     command: () => {
-      showDeleteModal.value = true;
+      confirm.require({
+        message: "Do you want to delete this record?",
+        header: "Danger Zone",
+        icon: "pi pi-info-circle",
+        rejectLabel: "Cancel",
+        rejectProps: {
+          label: "Cancel",
+          severity: "secondary",
+          outlined: true,
+        },
+        acceptProps: {
+          label: "Delete",
+          severity: "danger",
+        },
+        accept: async () => {
+          try {
+            if (props.onDelete) {
+              await props.onDelete(props.value);
+              toast.add({
+                severity: "success",
+                summary: "Success",
+                detail: "Record deleted",
+                life: 3000,
+              });
+            }
+          } catch (error) {
+            toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: "Failed to delete record",
+              life: 3000,
+            });
+          }
+        },
+        reject: () => {
+          toast.add({
+            severity: "info",
+            summary: "Cancelled",
+            detail: "Operation cancelled",
+            life: 3000,
+          });
+        },
+      });
     },
   },
 ]);

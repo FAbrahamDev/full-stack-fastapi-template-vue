@@ -90,7 +90,6 @@ const adminMenuItem: MenuItem = {
 const items = computed(() => {
   const menuItems = [...baseItems.value];
 
-  console.log(user.value);
   if (user.value?.is_superuser) {
     menuItems.push(adminMenuItem);
   }
@@ -98,8 +97,6 @@ const items = computed(() => {
 });
 
 function toggleDarkMode() {
-  // also set localStorage.setItem("colorMode", value);
-
   localStorage.setItem(
     "colorMode",
     document.documentElement.classList.contains("dark-mode")

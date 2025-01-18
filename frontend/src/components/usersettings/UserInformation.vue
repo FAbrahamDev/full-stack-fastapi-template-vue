@@ -27,7 +27,7 @@
           </Message>
         </template>
         <p v-else class="py-2 truncate max-w-[250px]">
-          {{ currentUser?.full_name || "N/A" }}
+          {{ user?.full_name || "N/A" }}
         </p>
       </div>
 
@@ -50,7 +50,7 @@
           </Message>
         </template>
         <p v-else class="py-2 truncate max-w-[250px]">
-          {{ currentUser?.email }}
+          {{ user?.email }}
         </p>
       </div>
 
@@ -69,7 +69,7 @@
               ? !$form.isDirty || updateUserMutation.isPending.value
               : false
           "
-          @click="editMode ? undefined : toggleEditMode"
+          @click="toggleEditMode"
         />
         <Button
           v-if="editMode"
@@ -95,15 +95,15 @@ import { useAuth } from "@/composables/useAuth";
 
 import type { UserPublic, UserUpdateMe } from "@/client";
 
-const { currentUser } = useAuth();
+const { user } = useAuth();
 const queryClient = useQueryClient();
 const toast = useToast();
 const editMode = ref(false);
 const error = ref("");
 
 const initialValues = reactive<UserPublic>({
-  full_name: currentUser.value?.full_name || "",
-  email: currentUser.value?.email || "",
+  full_name: user.value?.full_name || "",
+  email: user.value?.email || "",
 });
 
 const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -134,7 +134,7 @@ const updateUserMutation = useMutation({
     });
     editMode.value = false;
     error.value = "";
-    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+    queryClient.invalidateQueries({ queryKey: ["user"] });
   },
   onError: (err: ApiError) => {
     error.value = err.message || "Failed to update user information";
@@ -142,6 +142,7 @@ const updateUserMutation = useMutation({
 });
 
 const toggleEditMode = () => {
+  console.log("toggleEditMode");
   editMode.value = !editMode.value;
   error.value = "";
 };
@@ -169,7 +170,7 @@ const onCancel = () => {
   editMode.value = false;
   error.value = "";
   // Reset form to initial values
-  initialValues.full_name = currentUser.value?.full_name || "";
-  initialValues.email = currentUser.value?.email || "";
+  initialValues.full_name = user.value?.full_name || "";
+  initialValues.email = user.value?.email || "";
 };
 </script>

@@ -92,6 +92,7 @@ import { z } from "zod";
 import { useAuth } from "@/composables/useAuth";
 import { useRouter } from "vue-router";
 import type { UserRegister } from "@/client";
+import type { FormSubmitEvent } from "@primevue/forms";
 
 const { signUpMutation, resetError, isLoggedIn } = useAuth();
 const router = useRouter();
@@ -139,12 +140,7 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-interface SubmitEvent {
-  valid: boolean;
-  values: FormValues;
-}
-
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
+const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (!valid) return;
   console.log("onFormSubmit", { valid, values });
   if (signUpMutation.isPending.value) return;
@@ -154,7 +150,7 @@ const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
   console.log("signUpMutation", signUpMutation);
 
   try {
-    await signUpMutation.mutateAsync({ body: values });
+    await signUpMutation.mutateAsync({ body: values as FormValues });
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Registration failed";
   }

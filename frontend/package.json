@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@hey-api/client-axios": "^0.5.0",
+    "@primevue/core": "^4.2.5",
     "@primevue/forms": "4.2.5",
     "@primevue/themes": "4.2.5",
     "@tanstack/vue-query": "^5.64.1",

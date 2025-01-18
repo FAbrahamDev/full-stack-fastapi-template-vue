@@ -64,14 +64,21 @@
 import { computed, reactive, ref } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
-import { ItemsService, type ItemCreate } from "@/client";
+
 import { useToast } from "primevue/usetoast";
-import Dialog from "primevue/dialog";
-import { Form } from "@primevue/forms";
-import InputText from "primevue/inputtext";
-import Button from "primevue/button";
-import Message from "primevue/message";
+
+import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { itemsCreateItemMutation } from "@/client/@tanstack/vue-query.gen.ts";
+import type { Options } from "@hey-api/client-axios";
+import type { AxiosError } from "axios";
+import type { FormSubmitEvent } from "@primevue/forms";
+
+import {
+  type ItemCreate,
+  type ItemsCreateItemData,
+  type ItemsCreateItemError,
+  type ItemsCreateItemResponse,
+} from "@/client";
 
 interface Props {
   modelValue: boolean;
@@ -81,6 +88,8 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
+  // add the added event
+  added: [item: ItemCreate];
 }>();
 
 const toast = useToast();
@@ -104,16 +113,20 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-const mutation = useMutation({
-  mutationFn: (data: ItemCreate) =>
-    ItemsService.createItem({ requestBody: data }),
-  onSuccess: () => {
+const mutation = useMutation<
+  ItemsCreateItemResponse,
+  AxiosError<ItemsCreateItemError>,
+  Options<ItemsCreateItemData>
+>({
+  ...itemsCreateItemMutation(),
+  onSuccess: (_data, variables) => {
     toast.add({
       severity: "success",
       summary: "Success!",
       detail: "Item created successfully.",
       life: 3000,
     });
+    emit("added", _data);
     resetForm();
     onClose();
   },
@@ -125,18 +138,13 @@ const mutation = useMutation({
   },
 });
 
-interface SubmitEvent {
-  valid: boolean;
-  values: ItemCreate;
-}
-
-const onSubmit = async ({ valid, values }: SubmitEvent) => {
+const onSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (!valid || mutation.isPending.value) return;
 
   error.value = "";
 
   try {
-    await mutation.mutateAsync(values);
+    await mutation.mutateAsync({ body: values as ItemCreate });
   } catch (err) {
     error.value = err instanceof Error ? err.message : "Failed to create item";
   }
