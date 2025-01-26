@@ -107,6 +107,10 @@ export type ValidationError = {
   type: string;
 };
 
+export type HttpException = {
+  detail: string;
+};
+
 export type LoginAccessTokenData = {
   body: BodyLoginAccessToken;
   path?: never;
@@ -115,6 +119,10 @@ export type LoginAccessTokenData = {
 };
 
 export type LoginAccessTokenErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -141,6 +149,16 @@ export type LoginTestTokenData = {
   url: "/api/v1/login/test-token";
 };
 
+export type LoginTestTokenErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
+};
+
+export type LoginTestTokenError =
+  LoginTestTokenErrors[keyof LoginTestTokenErrors];
+
 export type LoginTestTokenResponses = {
   /**
    * Successful Response
@@ -161,6 +179,10 @@ export type LoginRecoverPasswordData = {
 };
 
 export type LoginRecoverPasswordErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -188,6 +210,10 @@ export type LoginResetPasswordData = {
 };
 
 export type LoginResetPasswordErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -217,6 +243,10 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -248,6 +278,10 @@ export type UsersReadUsersData = {
 
 export type UsersReadUsersErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -275,6 +309,10 @@ export type UsersCreateUserData = {
 
 export type UsersCreateUserErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -300,6 +338,16 @@ export type UsersDeleteUserMeData = {
   url: "/api/v1/users/me";
 };
 
+export type UsersDeleteUserMeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
+};
+
+export type UsersDeleteUserMeError =
+  UsersDeleteUserMeErrors[keyof UsersDeleteUserMeErrors];
+
 export type UsersDeleteUserMeResponses = {
   /**
    * Successful Response
@@ -316,6 +364,16 @@ export type UsersReadUserMeData = {
   query?: never;
   url: "/api/v1/users/me";
 };
+
+export type UsersReadUserMeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
+};
+
+export type UsersReadUserMeError =
+  UsersReadUserMeErrors[keyof UsersReadUserMeErrors];
 
 export type UsersReadUserMeResponses = {
   /**
@@ -335,6 +393,10 @@ export type UsersUpdateUserMeData = {
 };
 
 export type UsersUpdateUserMeErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -363,6 +425,10 @@ export type UsersUpdatePasswordMeData = {
 
 export type UsersUpdatePasswordMeErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -389,6 +455,10 @@ export type UsersRegisterUserData = {
 };
 
 export type UsersRegisterUserErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -419,6 +489,10 @@ export type UsersDeleteUserData = {
 
 export type UsersDeleteUserErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -447,6 +521,10 @@ export type UsersReadUserByIdData = {
 };
 
 export type UsersReadUserByIdErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -477,6 +555,10 @@ export type UsersUpdateUserData = {
 
 export type UsersUpdateUserErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -506,6 +588,10 @@ export type UtilsTestEmailData = {
 
 export type UtilsTestEmailErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -531,6 +617,16 @@ export type UtilsHealthCheckData = {
   url: "/api/v1/utils/health-check/";
 };
 
+export type UtilsHealthCheckErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
+};
+
+export type UtilsHealthCheckError =
+  UtilsHealthCheckErrors[keyof UtilsHealthCheckErrors];
+
 export type UtilsHealthCheckResponses = {
   /**
    * Successful Response
@@ -552,6 +648,10 @@ export type ItemsReadItemsData = {
 };
 
 export type ItemsReadItemsErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -579,6 +679,10 @@ export type ItemsCreateItemData = {
 };
 
 export type ItemsCreateItemErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */
@@ -609,6 +713,10 @@ export type ItemsDeleteItemData = {
 
 export type ItemsDeleteItemErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -638,6 +746,10 @@ export type ItemsReadItemData = {
 
 export type ItemsReadItemErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -666,6 +778,10 @@ export type ItemsUpdateItemData = {
 
 export type ItemsUpdateItemErrors = {
   /**
+   * Bad Request
+   */
+  400: HttpException;
+  /**
    * Validation Error
    */
   422: HttpValidationError;
@@ -692,6 +808,10 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserErrors = {
+  /**
+   * Bad Request
+   */
+  400: HttpException;
   /**
    * Validation Error
    */

@@ -4,15 +4,15 @@
 
   <NavBar
     type="User"
-    :add-modal-as="AddUser"
-    @added="addUser"
+    :add-modal-as="AddUserModal"
+    :query-key="readUsersQuery.queryKey"
     v-model:search="filters['global'].value"
   />
 
   <DataTable
     v-model:filters="filters"
     :value="users?.data"
-    :loading="isPending"
+    :loading="usersLoading"
     paginator
     :rows="10"
     :rowsPerPageOptions="[5, 10, 20, 50]"
@@ -20,10 +20,10 @@
   >
     <Column field="full_name" header="Full name">
       <template #body="slotProps">
-        <div class="flex align-items-center gap-2">
-          <span :class="{ 'text-gray-400': !slotProps.data.full_name }">
+        <div class="flex items-center gap-3">
+          <div :class="{ 'text-gray-400': !slotProps.data.full_name }">
             {{ slotProps.data.full_name || "N/A" }}
-          </span>
+          </div>
           <Tag
             v-if="currentUser?.id === slotProps.data.id"
             severity="info"
@@ -61,17 +61,17 @@
       <template #body="slotProps">
         <ActionsMenu
           entityName="User"
+          :query-key="readUsersQuery.queryKey"
           :value="slotProps.data"
-          :onDelete="deleteUser"
-          :disabled="currentUser?.id === slotProps.data.id"
           :edit-model-as="EditUser"
+          :on-delete="deleteUser"
         />
       </template>
     </Column>
 
     <template #empty> No users found. </template>
     <template #loading>
-      <div class="p-4 text-center">Loading...</div>
+      <div class="p-4 text-center">Loading user data. Pleas wait...</div>
     </template>
   </DataTable>
 </template>
@@ -82,7 +82,7 @@ import { useRoute } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { FilterMatchMode } from "@primevue/core/api";
 
-import AddUser from "@/components/admin/AddUserModal.vue";
+import AddUserModal from "@/components/admin/AddUserModal.vue";
 import ActionsMenu from "@/components/common/ActionsMenu.vue";
 import EditUser from "@/components/admin/EditUser.vue";
 import NavBar from "@/components/common/NavBar.vue";
@@ -91,7 +91,10 @@ import {
   usersDeleteUserMutation,
   usersReadUsersOptions,
 } from "@/client/@tanstack/vue-query.gen.ts";
-import type { UserPublic } from "@/client";
+import type { UserPublic, UsersPublic } from "@/client";
+
+import { useAuth } from "@/composables/useAuth.ts";
+const { user: currentUser } = useAuth();
 
 const queryClient = useQueryClient();
 
@@ -103,47 +106,37 @@ const PER_PAGE = 5;
 const route = useRoute();
 
 const page = computed(() => Number(route.query.page) || 1);
-const currentUser = computed(() => queryClient.getQueryData(["currentUser"]));
 
-const queryOptions = usersReadUsersOptions({
+const readUsersQuery = usersReadUsersOptions({
   query: {
     skip: (page.value - 1) * PER_PAGE,
     limit: PER_PAGE,
   },
 });
 
-const { data: users, isPending } = useQuery({
-  ...queryOptions,
+const { data: users, isPending: usersLoading } = useQuery({
+  ...readUsersQuery,
   placeholderData: (prevData) => prevData,
 });
 
-const deleteMutation = useMutation({
+const { mutateAsync: deleteUserMutation } = useMutation({
   ...usersDeleteUserMutation(),
-  onSuccess: (_data, variables) => {
-    queryClient.setQueryData(
-      queryOptions.queryKey,
-      (old: typeof users.value) => ({
-        ...old,
-        data: old?.data?.filter((user) => user.id !== variables.path.id) ?? [],
-      }),
+  onSuccess: (data, variables) => {
+    queryClient.setQueryData(readUsersQuery.queryKey, (old) =>
+      old
+        ? {
+            ...old,
+            data: old.data.filter((user) => user.id !== variables.path.user_id),
+          }
+        : undefined,
     );
   },
 });
 
 const deleteUser = async (user: UserPublic) => {
   if (currentUser.value?.id !== user.id) {
-    await deleteMutation.mutateAsync({ path: { id: user.id } });
+    await deleteUserMutation({ path: { user_id: user.id } });
   }
-};
-
-const addUser = (user: UserPublic) => {
-  queryClient.setQueryData(
-    queryOptions.queryKey,
-    (old: typeof users.value) => ({
-      ...old,
-      data: [user, ...(old?.data ?? [])],
-    }),
-  );
 };
 </script>
 

@@ -42,6 +42,7 @@ declare module 'vue' {
     Message: typeof import('primevue/message')['default']
     NavBar: typeof import('./src/components/common/NavBar.vue')['default']
     NavigationComponent: typeof import('./src/components/menu/NavigationComponent.vue')['default']
+    OverlayBadge: typeof import('primevue/overlaybadge')['default']
     Paginator: typeof import('primevue/paginator')['default']
     Panel: typeof import('primevue/panel')['default']
     Password: typeof import('primevue/password')['default']
@@ -65,5 +66,6 @@ declare module 'vue' {
   }
   export interface ComponentCustomProperties {
     Ripple: typeof import('primevue/ripple')['default']
+    Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

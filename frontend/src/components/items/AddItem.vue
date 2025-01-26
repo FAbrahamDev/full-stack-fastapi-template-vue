@@ -113,11 +113,7 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-const mutation = useMutation<
-  ItemsCreateItemResponse,
-  AxiosError<ItemsCreateItemError>,
-  Options<ItemsCreateItemData>
->({
+const mutation = useMutation({
   ...itemsCreateItemMutation(),
   onSuccess: (_data, variables) => {
     toast.add({
@@ -130,8 +126,8 @@ const mutation = useMutation<
     resetForm();
     onClose();
   },
-  onError: (err: Error) => {
-    error.value = err.message;
+  onError: (err) => {
+    error.value = (err.response?.data?.detail as string) || err.message;
   },
   onSettled: () => {
     queryClient.invalidateQueries({ queryKey: ["items"] });

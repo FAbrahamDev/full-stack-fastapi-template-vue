@@ -5,7 +5,7 @@
   <NavBar
     type="Item"
     :add-modal-as="AddItem"
-    @added="addItem"
+    :query-key="queryOptions.queryKey"
     v-model:search="filters['global'].value"
   />
 
@@ -18,7 +18,7 @@
     :rowsPerPageOptions="[5, 10, 20, 50]"
     stripedRows
   >
-    <Column field="id" header="ID">
+    <Column field="id" header="ID" style="width: 400px">
       <template #body="slotProps">
         {{ slotProps.data.id }}
       </template>
@@ -41,20 +41,21 @@
       </template>
     </Column>
 
-    <Column header="Actions">
+    <Column header="Actions" style="width: 100px">
       <template #body="slotProps">
         <ActionsMenu
           entityName="User"
+          :query-key="queryOptions.queryKey"
           :value="slotProps.data"
-          :onDelete="deleteItem"
           :edit-model-as="EditItem"
+          :on-delete="deleteItem"
         />
       </template>
     </Column>
 
     <template #empty> No item found. </template>
     <template #loading>
-      <div class="my-2">Loading item data. Please wait.</div>
+      <div class="my-2">Loading item data. Please wait...</div>
     </template>
   </DataTable>
 </template>
@@ -67,6 +68,7 @@ import { FilterMatchMode } from "@primevue/core/api";
 
 import AddItem from "@/components/items/AddItem.vue";
 import ActionsMenu from "@/components/common/ActionsMenu.vue";
+import EditItem from "@/components/items/EditItem.vue";
 import NavBar from "@/components/common/NavBar.vue";
 
 import {
@@ -74,7 +76,6 @@ import {
   itemsReadItemsOptions,
 } from "@/client/@tanstack/vue-query.gen.ts";
 import type { ItemPublic } from "@/client";
-import EditItem from "@/components/items/EditItem.vue";
 
 const queryClient = useQueryClient();
 
@@ -98,31 +99,21 @@ const { data: items, isPending } = useQuery({
   placeholderData: (prevData) => prevData,
 });
 
-const deleteMutation = useMutation({
+const { mutateAsync: deleteItemMutation } = useMutation({
   ...itemsDeleteItemMutation(),
-  onSuccess: (_data, variables) => {
-    queryClient.setQueryData(
-      queryOptions.queryKey,
-      (old: typeof items.value) => ({
-        ...old,
-        data: old?.data?.filter((item) => item.id !== variables.path.id) ?? [],
-      }),
+  onSuccess: (data, variables) => {
+    queryClient.setQueryData(queryOptions.queryKey, (old) =>
+      old
+        ? {
+            ...old,
+            data: old.data.filter((user) => user.id !== variables.path.id),
+          }
+        : undefined,
     );
   },
 });
 
 const deleteItem = async (item: ItemPublic) => {
-  await deleteMutation.mutateAsync({ path: { id: item.id } });
-};
-
-const addItem = (item: ItemPublic) => {
-  // Add item to items list
-  queryClient.setQueryData(
-    queryOptions.queryKey,
-    (old: typeof items.value) => ({
-      ...old,
-      data: [item, ...(old?.data ?? [])],
-    }),
-  );
+  await deleteItemMutation({ path: { id: item.id } });
 };
 </script>

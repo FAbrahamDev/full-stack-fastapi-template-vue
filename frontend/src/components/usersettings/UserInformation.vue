@@ -137,7 +137,10 @@ const updateUserMutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ["user"] });
   },
   onError: (err: ApiError) => {
-    error.value = err.message || "Failed to update user information";
+    error.value =
+      (err.response?.data?.detail as string) ||
+      err.message ||
+      "Failed to update user information";
   },
 });
 
@@ -158,12 +161,7 @@ const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
 
   error.value = "";
 
-  try {
-    await updateUserMutation.mutateAsync(values);
-  } catch (err) {
-    error.value =
-      err instanceof Error ? err.message : "Failed to update user information";
-  }
+  await updateUserMutation.mutateAsync(values);
 };
 
 const onCancel = () => {

@@ -146,7 +146,10 @@ const updatePasswordMutation = useMutation({
     });
   },
   onError: (err: ApiError) => {
-    error.value = err.message || "Failed to update password";
+    error.value = error.value =
+      (err.response?.data?.detail as string) ||
+      err.message ||
+      "Failed to update password";
   },
 });
 

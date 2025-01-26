@@ -22,10 +22,18 @@
           custom
           :v-tooltip="item.label"
         >
-          <a v-ripple :href="href" @click="navigate" :aria-label="item.label">
+          <Button
+            :href="href"
+            @click="navigate"
+            severity="contrast"
+            :aria-label="item.label"
+            variant="text"
+            v-tooltip="item.label"
+            placeholder="Right"
+          >
             <span :class="item.icon" />
             <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
-          </a>
+          </Button>
         </router-link>
       </div>
 
@@ -56,7 +64,7 @@ const { user } = useAuth();
 interface MenuItem {
   label: string;
   icon: string;
-  route?: string;
+  route: string;
   url?: string;
   target?: string;
   badge?: string;

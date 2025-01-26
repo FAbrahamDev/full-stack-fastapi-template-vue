@@ -52,7 +52,12 @@
       {{ error }}
     </Message>
 
-    <Button type="submit" severity="secondary" label="Reset Password" />
+    <Button
+      type="submit"
+      severity="secondary"
+      label="Reset Password"
+      :loading="isPending"
+    />
   </Form>
 </template>
 
@@ -63,6 +68,11 @@ import { z } from "zod";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { useAuth } from "@/composables/useAuth";
+import { useMutation } from "@tanstack/vue-query";
+import {
+  loginRecoverPasswordMutation,
+  loginResetPasswordMutation,
+} from "@/client/@tanstack/vue-query.gen.ts";
 
 const { isLoggedIn } = useAuth();
 const router = useRouter();
@@ -108,37 +118,42 @@ interface SubmitEvent {
   values: FormValues;
 }
 
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return;
+const { mutateAsync, isPending } = useMutation({
+  ...loginResetPasswordMutation(),
+  onError: (err) => {
+    error.value = err.response?.data.detail
+      ? (err.response?.data.detail as string)
+      : "Password recovery failed";
+  },
+});
 
-  const token = new URLSearchParams(window.location.search).get("token");
+const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
+  if (!valid || isPending.value) return;
+
+  const token = router.currentRoute.value.query.token as string;
   if (!token) {
     error.value = "Reset token is missing";
     return;
   }
 
-  try {
-    await LoginService.resetPassword({
-      requestBody: {
-        new_password: values.new_password,
-        token,
-      },
-    });
+  await mutateAsync({
+    body: {
+      new_password: values.new_password,
+      token,
+    },
+  });
 
-    toast.add({
-      severity: "success",
-      summary: "Success!",
-      detail: "Password updated successfully.",
-      life: 3000,
-    });
+  toast.add({
+    severity: "success",
+    summary: "Success!",
+    detail: "Password updated successfully.",
+    life: 3000,
+  });
 
-    initialValues.new_password = "";
-    initialValues.confirm_password = "";
+  initialValues.new_password = "";
+  initialValues.confirm_password = "";
 
-    router.push("/login");
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Password reset failed";
-  }
+  router.push("/login");
 };
 
 // Route guard

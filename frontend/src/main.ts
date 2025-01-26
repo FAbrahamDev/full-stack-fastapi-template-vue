@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import "./style.css";
+import "./style.scss";
 import "primeicons/primeicons.css";
 
 import App from "./App.vue";

@@ -45,8 +45,9 @@
           severity="error"
           size="small"
           variant="simple"
-          >{{ error.message }}</Message
         >
+          {{ error.message }}
+        </Message>
       </template>
     </div>
 
@@ -75,18 +76,23 @@
       type="submit"
       severity="secondary"
       label="Sign Up"
-      :loading="signUpMutation.isPending.value"
+      :loading="isPending"
     />
 
     <div>
       Already have an account?
-      <RouterLink to="/login"> Log in </RouterLink>
+      <Button
+        label="Log in"
+        severity="secondary"
+        @click="router.push('/login')"
+        variant="link"
+      />
     </div>
   </Form>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/composables/useAuth";
@@ -94,8 +100,9 @@ import { useRouter } from "vue-router";
 import type { UserRegister } from "@/client";
 import type { FormSubmitEvent } from "@primevue/forms";
 
-const { signUpMutation, resetError, isLoggedIn } = useAuth();
 const router = useRouter();
+const { signUpMutation, resetError, error, isLoggedIn } = useAuth();
+const { mutateAsync: signUp, isPending } = signUpMutation;
 
 interface FormValues extends UserRegister {
   confirm_password: string;
@@ -138,22 +145,13 @@ const resolver = zodResolver(
     }),
 );
 
-const error = ref<string>("");
-
 const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
-  if (!valid) return;
-  console.log("onFormSubmit", { valid, values });
-  if (signUpMutation.isPending.value) return;
+  if (!valid || isPending.value) return;
+
+  console.log(values);
 
   resetError();
-
-  console.log("signUpMutation", signUpMutation);
-
-  try {
-    await signUpMutation.mutateAsync({ body: values as FormValues });
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Registration failed";
-  }
+  await signUp({ body: values as FormValues });
 };
 
 if (isLoggedIn()) {

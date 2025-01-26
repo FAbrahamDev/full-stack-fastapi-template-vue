@@ -1,28 +1,15 @@
-// composables/useAuth.ts
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { AxiosError } from "axios";
 
 import { useToast as usePrimeToast } from "primevue/usetoast";
-import {
-  type BodyLoginAccessToken,
-  type LoginAccessTokenData,
-  type LoginAccessTokenError,
-  type LoginAccessTokenResponse,
-  LoginService,
-  type UserRegister,
-  type UsersRegisterUserData,
-  type UsersRegisterUserError,
-  type UsersRegisterUserResponse,
-  UsersService,
-} from "@/client";
+import { type LoginAccessTokenError } from "@/client";
 import {
   loginAccessTokenMutation,
   usersReadUserMeOptions,
   usersRegisterUserMutation,
 } from "@/client/@tanstack/vue-query.gen.ts";
-import type { Options } from "@hey-api/client-axios";
 
 export const useAuth = () => {
   const error = ref<string | null>(null);
@@ -41,11 +28,7 @@ export const useAuth = () => {
   });
 
   // Sign up mutation
-  const signUpMutation = useMutation<
-    UsersRegisterUserResponse, // Success response type
-    AxiosError<UsersRegisterUserError>, // Error type
-    Options<UsersRegisterUserData>
-  >({
+  const signUpMutation = useMutation({
     ...usersRegisterUserMutation(),
     onSuccess: () => {
       router.push("/login");
@@ -74,11 +57,7 @@ export const useAuth = () => {
   });
 
   // Login mutation
-  const loginMutation = useMutation<
-    LoginAccessTokenResponse,
-    AxiosError<LoginAccessTokenError>,
-    Options<LoginAccessTokenData>
-  >({
+  const loginMutation = useMutation({
     ...loginAccessTokenMutation(),
     onSuccess: (response) => {
       localStorage.setItem("access_token", response.access_token);
@@ -97,6 +76,7 @@ export const useAuth = () => {
 
   // Logout function
   const logout = () => {
+    console.log("logout");
     localStorage.removeItem("access_token");
     router.push("/login");
   };

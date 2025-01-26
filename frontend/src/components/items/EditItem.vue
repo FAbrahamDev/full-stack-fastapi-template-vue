@@ -10,6 +10,7 @@
   >
     <Form
       v-slot="$form"
+      ref="formRef"
       :initial-values="initialValues"
       :resolver="resolver"
       @submit="onSubmit"
@@ -52,8 +53,8 @@
         <Button
           type="submit"
           label="Save"
-          :loading="mutation.isPending.value"
-          :disabled="!$form.isDirty"
+          :loading="isPending"
+          :disabled="!$form.valid || isPending || !someThingChanged"
         />
         <Button label="Cancel" severity="secondary" @click="onClose" />
       </div>
@@ -65,14 +66,13 @@
 import { computed, reactive, ref } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
-import { ItemsService, type ItemPublic, type ItemUpdate } from "@/client";
+
+import { useMutation } from "@tanstack/vue-query";
+import { type ItemPublic, type ItemUpdate } from "@/client";
 import { useToast } from "primevue/usetoast";
-import Dialog from "primevue/dialog";
-import { Form } from "@primevue/forms";
-import InputText from "primevue/inputtext";
-import Button from "primevue/button";
-import Message from "primevue/message";
+
+import { Form, type FormSubmitEvent } from "@primevue/forms";
+import { itemsUpdateItemMutation } from "@/client/@tanstack/vue-query.gen.ts";
 
 interface Props {
   modelValue: boolean;
@@ -82,11 +82,13 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  "update:modelValue": [value: boolean];
+  (e: "update:modelValue", value: boolean): void;
+  (e: "edited", item: ItemPublic): void;
 }>();
 
 const toast = useToast();
-const queryClient = useQueryClient();
+const formRef = ref();
+
 const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit("update:modelValue", value),
@@ -106,13 +108,10 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-const mutation = useMutation({
-  mutationFn: (data: ItemUpdate) =>
-    ItemsService.updateItem({
-      id: props.item.id,
-      requestBody: data,
-    }),
-  onSuccess: () => {
+const { mutateAsync: updateItem, isPending } = useMutation({
+  ...itemsUpdateItemMutation(),
+  onSuccess: (data, variables) => {
+    emit("edited", data);
     toast.add({
       severity: "success",
       summary: "Success!",
@@ -121,30 +120,27 @@ const mutation = useMutation({
     });
     onClose();
   },
-  onError: (err: Error) => {
+  onError: (err) => {
     error.value = err.message;
-  },
-  onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ["items"] });
   },
 });
 
-interface SubmitEvent {
-  valid: boolean;
-  values: ItemUpdate;
-}
-
-const onSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid || mutation.isPending.value) return;
+const onSubmit = async ({ valid, values }: FormSubmitEvent) => {
+  if (!valid || isPending.value) return;
 
   error.value = "";
 
-  try {
-    await mutation.mutateAsync(values);
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to update item";
-  }
+  await updateItem({
+    path: { id: props.item.id },
+    body: values,
+  });
 };
+
+const someThingChanged = computed(
+  () =>
+    formRef.value?.states.title.value !== props.item.title ||
+    formRef.value?.states.description.value !== props.item.description,
+);
 
 const resetForm = () => {
   Object.assign(initialValues, {

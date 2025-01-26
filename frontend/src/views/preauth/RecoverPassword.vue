@@ -6,9 +6,11 @@
     @submit="onFormSubmit"
     class="flex flex-col gap-4"
   >
-    <h1 class="text-2xl font-bold text-center mb-2">Password Recovery</h1>
+    <div>
+      <h1 class="text-2xl font-bold text-start mb-2">Password Recovery</h1>
 
-    <p>A password recovery email will be sent to the registered account.</p>
+      <p>A password recovery email will be sent to the registered account.</p>
+    </div>
 
     <div class="flex flex-col gap-1">
       <InputText name="email" type="email" placeholder="Email" fluid />
@@ -30,16 +32,18 @@
       type="submit"
       severity="secondary"
       label="Continue"
-      :loading="isLoading"
+      :loading="isPending"
     />
 
-    <Button
-      label="Back"
-      icon="pi pi-arrow-left"
-      severity="secondary"
-      @click="router.push('/login')"
-      variant="text"
-    />
+    <div>
+      Remember your password?
+      <Button
+        label="Log in"
+        severity="secondary"
+        @click="router.push({ name: 'login' })"
+        variant="link"
+      />
+    </div>
   </Form>
 </template>
 
@@ -50,7 +54,9 @@ import { z } from "zod";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import { useAuth } from "@/composables/useAuth";
-
+import type { FormSubmitEvent } from "@primevue/forms";
+import { useMutation } from "@tanstack/vue-query";
+import { loginRecoverPasswordMutation } from "@/client/@tanstack/vue-query.gen.ts";
 const { isLoggedIn } = useAuth();
 const router = useRouter();
 const toast = useToast();
@@ -60,7 +66,7 @@ interface FormValues {
 }
 
 const initialValues = reactive<FormValues>({
-  email: "",
+  email: (router.currentRoute.value.query.email as string) || "",
 });
 
 const resolver = zodResolver(
@@ -72,40 +78,34 @@ const resolver = zodResolver(
   }),
 );
 
-const error = ref<string>("");
-const isLoading = ref(false);
+const error = ref("");
 
-interface SubmitEvent {
-  valid: boolean;
-  values: FormValues;
-}
+const { mutateAsync, isPending } = useMutation({
+  ...loginRecoverPasswordMutation(),
+  onError: (err) => {
+    error.value = err.response?.data.detail
+      ? (err.response?.data.detail as string)
+      : "Password recovery failed";
+  },
+});
 
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return;
-  if (isLoading.value) return;
+const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
+  if (!valid || isPending.value) return;
 
-  isLoading.value = true;
   error.value = "";
 
-  try {
-    await LoginService.recoverPassword({
-      email: values.email,
-    });
+  await mutateAsync({
+    path: { email: values.email },
+  });
 
-    toast.add({
-      severity: "success",
-      summary: "Email sent.",
-      detail: "We sent an email with a link to get back into your account.",
-      life: 3000,
-    });
+  toast.add({
+    severity: "success",
+    summary: "Email sent.",
+    detail: "We sent an email with a link to get back into your account.",
+    life: 3000,
+  });
 
-    initialValues.email = "";
-  } catch (err) {
-    error.value =
-      err instanceof Error ? err.message : "Password recovery failed";
-  } finally {
-    isLoading.value = false;
-  }
+  initialValues.email = "";
 };
 
 // Route guard

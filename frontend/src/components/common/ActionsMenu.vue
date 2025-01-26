@@ -17,15 +17,24 @@
       :is="editModalComponent"
       v-model="showEditModal"
       :item="value"
+      @edited="editItem"
     />
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends DatabasePublic">
 import { ref, computed, type Component } from "vue";
 import { useConfirm } from "primevue";
 import { useToast } from "primevue/usetoast";
 import type { MenuItem } from "primevue/menuitem";
+import type {
+  DatabasePublic,
+  EnumeratedData,
+  OpenAPIQueryKey,
+} from "@/assets/scripts/types.ts";
+
+import { useQueryClient } from "@tanstack/vue-query";
+const queryClient = useQueryClient();
 
 interface Props<T> {
   value: T;
@@ -33,11 +42,15 @@ interface Props<T> {
   disabled?: boolean;
   onDelete?: (item: T) => Promise<void>;
   editModelAs: Component;
+  queryKey?: OpenAPIQueryKey;
 }
 
-const props = withDefaults(defineProps<Props<any>>(), {
+const props = withDefaults(defineProps<Props<T>>(), {
   disabled: false,
 });
+
+// define emits added element and search string
+const emit = defineEmits(["onEdit", "update:search"]);
 
 const confirm = useConfirm();
 const toast = useToast();
@@ -106,4 +119,20 @@ const menuItems = computed<MenuItem[]>(() => [
     },
   },
 ]);
+
+const editItem = async (item: T) => {
+  if (props.queryKey) {
+    queryClient.setQueryData<EnumeratedData>(
+      props.queryKey as readonly unknown[],
+      (old) =>
+        old
+          ? {
+              ...old,
+              data: old.data.map((user) => (user.id === item.id ? item : user)),
+            }
+          : undefined,
+    );
+  }
+  emit("onEdit", item);
+};
 </script>

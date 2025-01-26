@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* My PrimeVue Style overwrites */
+
+.p-button-link {
+    padding: 0 !important;
+}

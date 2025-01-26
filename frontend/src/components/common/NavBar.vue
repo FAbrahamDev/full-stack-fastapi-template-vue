@@ -1,18 +1,17 @@
-<!-- Navbar.vue -->
 <template>
   <div class="flex py-8 gap-4">
-    <FloatLabel variant="in">
+    <FloatLabel variant="on">
       <IconField>
         <InputIcon class="pi pi-search" />
         <InputText
-          id="in_label"
+          id="searchInputField"
           :value="search"
           autocomplete="off"
           variant="filled"
           @update:modelValue="$emit('update:search', $event)"
         />
       </IconField>
-      <label for="in_label">Search</label>
+      <label for="searchInputField">Search</label>
     </FloatLabel>
 
     <div class="flex-1" />
@@ -26,31 +25,56 @@
       Add {{ type }}
     </Button>
 
-    <component
-      :is="addModalComponent"
-      v-model="showModal"
-      @added="$emit('added', $event)"
-    />
+    <component :is="addModalComponent" v-model="showModal" @added="addItem" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, computed, type Component } from "vue";
+import { ref, computed, type Component } from "vue";
 import Button from "primevue/button";
+import type {
+  DatabasePublic,
+  EnumeratedData,
+  OpenAPIQueryKey,
+} from "@/assets/scripts/types.ts";
+
+import { useQueryClient } from "@tanstack/vue-query";
+const queryClient = useQueryClient();
 
 interface Props {
   type: string;
   addModalAs: Component;
   search: string;
+  queryKey?: OpenAPIQueryKey;
 }
 
 const props = defineProps<Props>();
 
 // define emits added element and search string
-defineEmits(["added", "update:search"]);
+const emit = defineEmits(["added", "update:search"]);
 
 const showModal = ref(false);
 
 // Compute the modal component
 const addModalComponent = computed(() => props.addModalAs);
+
+const addItem = (item: DatabasePublic) => {
+  if (props.queryKey) {
+    queryClient.setQueryData<EnumeratedData>(
+      props.queryKey as readonly unknown[],
+      (old) =>
+        old
+          ? {
+              ...old,
+              data: [item, ...old.data],
+              count: (old.count ?? 0) + 1,
+            }
+          : {
+              data: [item],
+              count: 1,
+            },
+    );
+  }
+  emit("added", item);
+};
 </script>

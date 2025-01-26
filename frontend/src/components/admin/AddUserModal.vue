@@ -16,7 +16,13 @@
       class="flex flex-col gap-4"
     >
       <div class="flex flex-col gap-1">
-        <InputText name="email" type="email" placeholder="Email" fluid />
+        <InputText
+          name="email"
+          type="email"
+          placeholder="Email"
+          fluid
+          autocomplete="email"
+        />
         <Message
           v-if="$form.email?.invalid"
           severity="error"
@@ -28,7 +34,13 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <InputText name="full_name" type="text" placeholder="Full name" fluid />
+        <InputText
+          name="full_name"
+          type="text"
+          placeholder="Full name"
+          fluid
+          autocomplete="username"
+        />
         <Message
           v-if="$form.full_name?.invalid"
           severity="error"
@@ -46,6 +58,7 @@
           fluid
           toggle-mask
           :feedback="false"
+          :inputProps="{ autocomplete: 'new-password' }"
         />
         <template v-if="$form.password?.invalid">
           <Message
@@ -67,6 +80,7 @@
           fluid
           toggle-mask
           :feedback="false"
+          :inputProps="{ autocomplete: 'new-password' }"
         />
         <Message
           v-if="$form.confirm_password?.invalid"
@@ -79,13 +93,13 @@
       </div>
 
       <div class="flex gap-4">
-        <div class="field-checkbox">
-          <Checkbox name="is_superuser" :binary="true" id="isSuperuser" />
-          <label for="isSuperuser" class="ml-2">Is superuser?</label>
+        <div class="flex items-center gap-2">
+          <Checkbox name="is_superuser" :binary="true" inputId="is_superuser" />
+          <label for="is_superuser">Is superuser?</label>
         </div>
-        <div class="field-checkbox">
-          <Checkbox name="is_active" :binary="true" id="isActive" />
-          <label for="isActive" class="ml-2">Is active?</label>
+        <div class="flex items-center gap-2">
+          <Checkbox name="is_active" :binary="true" inputId="is_active" />
+          <label for="is_active">Is active?</label>
         </div>
       </div>
 
@@ -94,11 +108,7 @@
       </Message>
 
       <div class="flex gap-2 justify-end">
-        <Button
-          type="submit"
-          label="Save"
-          :loading="mutation.isPending.value"
-        />
+        <Button type="submit" label="Save" :loading="isPending" />
         <Button label="Cancel" severity="secondary" @click="onClose" />
       </div>
     </Form>
@@ -106,36 +116,32 @@
 </template>
 
 <script setup lang="ts">
+import type { FormSubmitEvent } from "@primevue/forms";
 import { computed, reactive, ref } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { useMutation } from "@tanstack/vue-query";
 import { useToast } from "primevue/usetoast";
-import { Form } from "@primevue/forms";
 import { usersCreateUserMutation } from "@/client/@tanstack/vue-query.gen.ts";
+import type { UserCreate, UserPublic } from "@/client";
 
 const props = defineProps<{
   modelValue: boolean;
 }>();
 
 const emit = defineEmits<{
-  "update:modelValue": [value: boolean];
+  (e: "update:modelValue", value: boolean): void;
+  (e: "added", user: UserPublic): void;
 }>();
 
 const toast = useToast();
-const queryClient = useQueryClient();
 const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit("update:modelValue", value),
 });
 
-interface FormValues {
-  email: string;
-  full_name: string;
-  password: string;
+interface FormValues extends UserCreate {
   confirm_password: string;
-  is_superuser: boolean;
-  is_active: boolean;
 }
 
 const initialValues = reactive<FormValues>({
@@ -159,7 +165,7 @@ const resolver = zodResolver(
         .min(3, { message: "Full name must be at least 3 characters." }),
       password: z
         .string()
-        .min(8, { message: "Password must be at least 8 characters." })
+        .min(3, { message: "Password must be at least 3 characters." })
         .refine((value) => /[a-z]/.test(value), {
           message: "Must have a lowercase letter.",
         })
@@ -181,42 +187,36 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-const mutation = useMutation({
+const { mutateAsync: createUser, isPending } = useMutation({
   ...usersCreateUserMutation(),
-  onSuccess: () => {
+  onSuccess: (data) => {
+    console.log(data);
     toast.add({
       severity: "success",
       summary: "Success!",
       detail: "User created successfully.",
       life: 3000,
     });
+    emit("added", data);
     resetForm();
     onClose();
   },
-  onError: (err: Error) => {
-    error.value = err.message;
-  },
-  onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ["users"] });
+  onError: (err) => {
+    error.value = (err.response?.data?.detail as string) || err.message;
   },
 });
 
-interface SubmitEvent {
-  valid: boolean;
-  values: FormValues;
-}
+const onSubmit = async ({ valid, values }: FormSubmitEvent) => {
+  if (!valid || isPending.value) return;
 
-const onSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid || mutation.isPending.value) return;
+  console.log(values);
 
   error.value = "";
   const { confirm_password, ...submitData } = values;
 
-  try {
-    await mutation.mutateAsync(submitData);
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to create user";
-  }
+  await createUser({
+    body: submitData as UserCreate,
+  });
 };
 
 const resetForm = () => {

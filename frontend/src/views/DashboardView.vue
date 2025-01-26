@@ -2,7 +2,7 @@
 <template>
   <div class="mb-12">
     <h1 class="text-2xl font-medium">
-      Hi, {{ currentUser?.full_name || currentUser?.email }} 👋🏼
+      Hi, {{ user?.full_name || user?.email }} 👋🏼
     </h1>
     <p class="text-gray-600 mt-2">Welcome back, nice to see you again!</p>
   </div>
@@ -11,12 +11,5 @@
 <script setup lang="ts">
 import { useAuth } from "@/composables/useAuth";
 
-const { currentUser } = useAuth();
+const { user } = useAuth();
 </script>
-
-<style scoped>
-.container {
-  margin: 0 auto;
-  max-width: 1200px;
-}
-</style>

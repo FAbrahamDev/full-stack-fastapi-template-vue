@@ -3,7 +3,28 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    "compounds": [
+        {
+          "name": "Debug Full Stack",
+          "configurations": [
+            "Debug FastAPI Project backend: Python Debugger",
+            "Start Frontend with pnpm run dev",
+          ],
+          "presentation": {
+            "hidden": false,
+            "group": "",
+            "order": 1
+          }
+        },
+    ],
     "configurations": [
+        {
+            "name": "Setup Backend Virtual Environment with uv",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "uv venv .venv && uv sync",
+            "cwd": "${workspaceFolder}/backend"
+        },
         {
             "name": "Debug FastAPI Project backend: Python Debugger",
             "type": "debugpy",
@@ -16,6 +37,16 @@
             "cwd": "${workspaceFolder}/backend",
             "jinja": true,
             "envFile": "${workspaceFolder}/.env",
+            "python": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+            "justMyCode": true
+        },
+        {
+            "name": "Start Frontend with pnpm run dev",
+            "request": "launch",
+            "type": "node-terminal",
+            "command": "pnpm run dev",
+            "cwd": "${workspaceFolder}/frontend",
+            "env": {}
         },
         {
             "type": "chrome",
@@ -23,6 +54,6 @@
             "name": "Debug Frontend: Launch Chrome against http://localhost:5173",
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}/frontend"
-        },
+        }
     ]
 }

@@ -7,7 +7,10 @@
     class="flex flex-col gap-4"
   >
     <div class="flex flex-col gap-1">
-      <InputText name="username" type="text" placeholder="Username" />
+      <IconField>
+        <InputIcon class="pi pi-user" />
+        <InputText name="username" type="text" placeholder="Username" fluid />
+      </IconField>
       <Message
         v-if="$form.username?.invalid"
         severity="error"
@@ -18,13 +21,16 @@
       </Message>
     </div>
     <div class="flex flex-col gap-1">
-      <Password
-        name="password"
-        placeholder="Password"
-        toggleMask
-        fluid
-        :feedback="false"
-      />
+      <IconField>
+        <InputIcon class="pi pi-lock" />
+        <Password
+          name="password"
+          placeholder="Password"
+          toggleMask
+          fluid
+          :feedback="false"
+        />
+      </IconField>
       <Message
         v-if="$form.password?.invalid"
         severity="error"
@@ -34,10 +40,18 @@
         {{ $form.password.error?.message }}
       </Message>
     </div>
-    <div class="flex justify-center">
-      <RouterLink to="/recover-password" class="text-sm">
-        Forgot password?
-      </RouterLink>
+    <div class="flex justify-end">
+      <Button
+        class="!text-sm"
+        label="Forgot password?"
+        variant="link"
+        @click="
+          router.push({
+            name: 'recover-password',
+            query: { email: $form.username?.value },
+          })
+        "
+      />
     </div>
 
     <Message v-if="error" severity="error" size="small" variant="simple">
@@ -48,26 +62,31 @@
       type="submit"
       severity="secondary"
       label="Log In"
-      :loading="loginMutation.isPending.value"
+      :loading="isPending"
     />
 
     <div>
       Don't have an account?
-      <RouterLink to="/signup"> Sign up </RouterLink>
+      <Button label="Sign up" variant="link" @click="router.push('/signup')" />
     </div>
   </Form>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { reactive } from "vue";
+
+import type { FormSubmitEvent } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/composables/useAuth";
-import { useRouter } from "vue-router";
-import type { BodyLoginAccessToken } from "@/client";
-const { loginMutation, resetError, isLoggedIn } = useAuth();
 
+import { useAuth } from "@/composables/useAuth";
+import type { BodyLoginAccessToken } from "@/client";
+
+import { useRouter } from "vue-router";
 const router = useRouter();
+
+const { loginMutation, error, resetError, isLoggedIn } = useAuth();
+const { mutateAsync: login, isPending } = loginMutation;
 
 const initialValues = reactive<BodyLoginAccessToken>({
   username: "",
@@ -81,24 +100,11 @@ const resolver = zodResolver(
   }),
 );
 
-const error = ref<string>("");
-
-interface SubmitEvent {
-  valid: boolean;
-  values: BodyLoginAccessToken;
-}
-
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return;
-  if (loginMutation.isPending.value) return;
+const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
+  if (!valid || isPending.value) return;
 
   resetError();
-
-  try {
-    await loginMutation.mutateAsync({ body: values });
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Login failed";
-  }
+  await login({ body: values as BodyLoginAccessToken });
 };
 
 if (isLoggedIn()) {

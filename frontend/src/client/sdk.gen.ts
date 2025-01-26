@@ -12,6 +12,7 @@ import type {
   LoginAccessTokenError,
   LoginTestTokenData,
   LoginTestTokenResponse,
+  LoginTestTokenError,
   LoginRecoverPasswordData,
   LoginRecoverPasswordResponse,
   LoginRecoverPasswordError,
@@ -29,8 +30,10 @@ import type {
   UsersCreateUserError,
   UsersDeleteUserMeData,
   UsersDeleteUserMeResponse,
+  UsersDeleteUserMeError,
   UsersReadUserMeData,
   UsersReadUserMeResponse,
+  UsersReadUserMeError,
   UsersUpdateUserMeData,
   UsersUpdateUserMeResponse,
   UsersUpdateUserMeError,
@@ -54,6 +57,7 @@ import type {
   UtilsTestEmailError,
   UtilsHealthCheckData,
   UtilsHealthCheckResponse,
+  UtilsHealthCheckError,
   ItemsReadItemsData,
   ItemsReadItemsResponse,
   ItemsReadItemsError,
@@ -108,7 +112,7 @@ export class LoginService {
   ) {
     return (options?.client ?? client).post<
       LoginTestTokenResponse,
-      unknown,
+      LoginTestTokenError,
       ThrowOnError
     >({
       security: [
@@ -245,7 +249,7 @@ export class UsersService {
   ) {
     return (options?.client ?? client).delete<
       UsersDeleteUserMeResponse,
-      unknown,
+      UsersDeleteUserMeError,
       ThrowOnError
     >({
       security: [
@@ -268,7 +272,7 @@ export class UsersService {
   ) {
     return (options?.client ?? client).get<
       UsersReadUserMeResponse,
-      unknown,
+      UsersReadUserMeError,
       ThrowOnError
     >({
       security: [
@@ -463,7 +467,7 @@ export class UtilsService {
   ) {
     return (options?.client ?? client).get<
       UtilsHealthCheckResponse,
-      unknown,
+      UtilsHealthCheckError,
       ThrowOnError
     >({
       url: "/api/v1/utils/health-check/",
