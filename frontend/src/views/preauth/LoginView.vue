@@ -79,13 +79,13 @@ import type { FormSubmitEvent } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 
-import { useAuth } from "@/composables/useAuth";
+import { useAuthStore } from "@/stores/auth";
 import type { BodyLoginAccessToken } from "@/client";
 
 import { useRouter } from "vue-router";
 const router = useRouter();
 
-const { loginMutation, error, resetError, isLoggedIn } = useAuth();
+const { loginMutation, error, resetError, isLoggedIn } = useAuthStore();
 const { mutateAsync: login, isPending } = loginMutation;
 
 const initialValues = reactive<BodyLoginAccessToken>({

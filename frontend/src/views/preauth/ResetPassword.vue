@@ -67,14 +67,11 @@ import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
-import { useAuth } from "@/composables/useAuth";
+import { useAuthStore } from "@/stores/auth";
 import { useMutation } from "@tanstack/vue-query";
-import {
-  loginRecoverPasswordMutation,
-  loginResetPasswordMutation,
-} from "@/client/@tanstack/vue-query.gen.ts";
+import { loginResetPasswordMutation } from "@/client/@tanstack/vue-query.gen.ts";
 
-const { isLoggedIn } = useAuth();
+const { isLoggedIn } = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 

@@ -110,13 +110,14 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
-import { Form, type FormSubmitEvent } from "@primevue/forms";
+import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { useToast } from "primevue/usetoast";
-import { useAuth } from "@/composables/useAuth";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 import type { UserUpdateMe } from "@/client";
 import type { AxiosError } from "axios";
 import {
@@ -124,7 +125,7 @@ import {
   usersReadUserMeQueryKey,
 } from "@/client/@tanstack/vue-query.gen";
 
-const { user } = useAuth();
+const { user } = storeToRefs(useAuthStore());
 const queryClient = useQueryClient();
 const toast = useToast();
 const editMode = ref(false);
@@ -151,7 +152,7 @@ const resolver = zodResolver(
 
 const { mutateAsync: updateUserInfo, isPending: isUpdatingUser } = useMutation({
   ...usersUpdateUserMeMutation(),
-  onSuccess: () => {
+  onSuccess: (data) => {
     toast.add({
       severity: "success",
       summary: "Success!",
@@ -160,7 +161,7 @@ const { mutateAsync: updateUserInfo, isPending: isUpdatingUser } = useMutation({
     });
     editMode.value = false;
     error.value = "";
-    queryClient.invalidateQueries({ queryKey: [usersReadUserMeQueryKey()] });
+    queryClient.setQueryData(usersReadUserMeQueryKey(), data);
   },
   onError: (err: AxiosError<{ detail: string }>) => {
     error.value =

@@ -95,13 +95,13 @@
 import { reactive } from "vue";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/composables/useAuth";
+import { useAuthStore } from "@/stores/auth";
 import { useRouter } from "vue-router";
 import type { UserRegister } from "@/client";
 import type { FormSubmitEvent } from "@primevue/forms";
 
 const router = useRouter();
-const { signUpMutation, resetError, error, isLoggedIn } = useAuth();
+const { signUpMutation, resetError, error, isLoggedIn } = useAuthStore();
 const { mutateAsync: signUp, isPending } = signUpMutation;
 
 interface FormValues extends UserRegister {

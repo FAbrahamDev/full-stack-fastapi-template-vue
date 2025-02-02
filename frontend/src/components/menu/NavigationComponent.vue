@@ -55,11 +55,12 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useAuth } from "@/composables/useAuth";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 import UserMenu from "@/components/menu/UserMenu.vue";
 
 const router = useRouter();
-const { user } = useAuth();
+const { user } = storeToRefs(useAuthStore());
 
 interface MenuItem {
   label: string;

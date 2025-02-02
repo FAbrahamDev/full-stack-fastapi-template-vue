@@ -1,17 +1,17 @@
+import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { AxiosError } from "axios";
-
 import { useToast as usePrimeToast } from "primevue/usetoast";
 import { type LoginAccessTokenError } from "@/client";
 import {
   loginAccessTokenMutation,
   usersReadUserMeOptions,
   usersRegisterUserMutation,
-} from "@/client/@tanstack/vue-query.gen.ts";
+} from "@/client/@tanstack/vue-query.gen";
 
-export const useAuth = () => {
+export const useAuthStore = defineStore("auth", () => {
   const error = ref<string | null>(null);
   const router = useRouter();
   const toast = usePrimeToast();
@@ -25,6 +25,8 @@ export const useAuth = () => {
   const { data: user, isLoading } = useQuery({
     ...usersReadUserMeOptions(),
     enabled: isLoggedIn(),
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
   });
 
   // Sign up mutation
@@ -62,6 +64,10 @@ export const useAuth = () => {
     onSuccess: (response) => {
       localStorage.setItem("access_token", response.access_token);
       router.push("/");
+      // Invalidate and refetch user data after login
+      queryClient.invalidateQueries({
+        queryKey: usersReadUserMeOptions().queryKey,
+      });
     },
     onError: (err: AxiosError<LoginAccessTokenError>) => {
       let errDetail = err.response?.data?.detail || err.message;
@@ -76,8 +82,9 @@ export const useAuth = () => {
 
   // Logout function
   const logout = () => {
-    console.log("logout");
     localStorage.removeItem("access_token");
+    // Clear user data from cache
+    queryClient.clear();
     router.push("/login");
   };
 
@@ -96,4 +103,4 @@ export const useAuth = () => {
     error,
     resetError,
   };
-};
+});

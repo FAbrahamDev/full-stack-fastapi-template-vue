@@ -91,10 +91,11 @@ import {
   usersDeleteUserMutation,
   usersReadUsersOptions,
 } from "@/client/@tanstack/vue-query.gen.ts";
-import type { UserPublic, UsersPublic } from "@/client";
+import type { UserPublic } from "@/client";
 
-import { useAuth } from "@/composables/useAuth.ts";
-const { user: currentUser } = useAuth();
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
+const { user: currentUser } = storeToRefs(useAuthStore());
 
 const queryClient = useQueryClient();
 

@@ -28,9 +28,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, type Component } from "vue";
-import { useAuth } from "@/composables/useAuth";
+import { ref, computed, type Component } from "vue";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 import ProgressSpinner from "primevue/progressspinner";
+
+import type { UserPublic } from "@/client";
 
 import Appearance from "@/components/usersettings/AppearanceSetting.vue";
 import ChangePassword from "@/components/usersettings/ChangePassword.vue";
@@ -73,5 +76,5 @@ const tabsConfig: TabItem[] = [
   },
 ];
 
-const { user, isLoading } = useAuth();
+const { user, isLoading } = storeToRefs(useAuthStore());
 </script>

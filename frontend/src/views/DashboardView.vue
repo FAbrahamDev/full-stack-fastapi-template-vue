@@ -9,7 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import { useAuth } from "@/composables/useAuth";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 
-const { user } = useAuth();
+const { user } = storeToRefs(useAuthStore());
 </script>

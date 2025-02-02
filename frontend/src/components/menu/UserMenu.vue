@@ -48,9 +48,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useAuth } from "@/composables/useAuth.js";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 
-const { logout } = useAuth();
+const { logout } = useAuthStore();
 
 const menu = ref();
 

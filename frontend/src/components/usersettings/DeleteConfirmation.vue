@@ -46,7 +46,8 @@ import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import { useToast } from "primevue/usetoast";
-import { useAuth } from "@/composables/useAuth";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
 
 interface Props {
   modelValue: boolean;
@@ -63,7 +64,7 @@ const dialogVisible = ref(props.modelValue);
 const isSubmitting = ref(false);
 const toast = useToast();
 const queryClient = useQueryClient();
-const { logout } = useAuth();
+const { logout } = useAuthStore();
 
 // Sync dialog visibility with v-model
 watch(
