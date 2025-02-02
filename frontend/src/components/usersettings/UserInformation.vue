@@ -2,56 +2,86 @@
   <h2 class="text-lg font-semibold py-4">User Information</h2>
 
   <div class="w-full md:w-1/2">
+    <!-- Display Mode -->
+    <div v-if="!editMode" class="flex flex-col gap-6">
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-500 dark:text-gray-400"
+          >Full name</label
+        >
+        <p class="mt-1 text-base font-medium">
+          {{ user?.full_name || "N/A" }}
+        </p>
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-sm text-gray-500 dark:text-gray-400">Email</label>
+        <p class="mt-1 text-base font-medium">
+          {{ user?.email }}
+        </p>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <Button
+          type="button"
+          label="Edit Profile"
+          severity="secondary"
+          icon="pi pi-user-edit"
+          @click="toggleEditMode"
+        />
+      </div>
+    </div>
+
+    <!-- Edit Mode -->
     <Form
+      v-else
       v-slot="$form"
+      ref="formRef"
       :initial-values="initialValues"
       :resolver="resolver"
       @submit="onFormSubmit"
       class="flex flex-col gap-4"
     >
       <div class="flex flex-col gap-1">
-        <label for="full_name" class="block mb-2">Full name</label>
-        <template v-if="editMode">
-          <InputText
-            name="full_name"
-            placeholder="Full name"
-            :disabled="updateUserMutation.isPending.value"
-          />
-          <Message
-            v-if="$form.full_name?.invalid"
-            severity="error"
-            size="small"
-            variant="simple"
-          >
-            {{ $form.full_name.error?.message }}
-          </Message>
-        </template>
-        <p v-else class="py-2 truncate max-w-[250px]">
-          {{ user?.full_name || "N/A" }}
-        </p>
+        <label
+          for="full_name"
+          class="block mb-2 text-sm text-gray-500 dark:text-gray-400"
+          >Full name</label
+        >
+        <InputText
+          name="full_name"
+          placeholder="Full name"
+          :disabled="isUpdatingUser"
+        />
+        <Message
+          v-if="$form.full_name?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+        >
+          {{ $form.full_name.error?.message }}
+        </Message>
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="email" class="block mb-2">Email</label>
-        <template v-if="editMode">
-          <InputText
-            name="email"
-            type="email"
-            placeholder="Email"
-            :disabled="updateUserMutation.isPending.value"
-          />
-          <Message
-            v-if="$form.email?.invalid"
-            severity="error"
-            size="small"
-            variant="simple"
-          >
-            {{ $form.email.error?.message }}
-          </Message>
-        </template>
-        <p v-else class="py-2 truncate max-w-[250px]">
-          {{ user?.email }}
-        </p>
+        <label
+          for="email"
+          class="block mb-2 text-sm text-gray-500 dark:text-gray-400"
+          >Email</label
+        >
+        <InputText
+          name="email"
+          type="email"
+          placeholder="Email"
+          :disabled="isUpdatingUser"
+        />
+        <Message
+          v-if="$form.email?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+        >
+          {{ $form.email.error?.message }}
+        </Message>
       </div>
 
       <Message v-if="error" severity="error" size="small" variant="simple">
@@ -60,23 +90,17 @@
 
       <div class="flex gap-3">
         <Button
-          :type="editMode ? 'submit' : 'button'"
-          :label="editMode ? 'Save' : 'Edit'"
+          type="submit"
+          label="Save"
           severity="secondary"
-          :loading="updateUserMutation.isPending.value"
-          :disabled="
-            editMode
-              ? !$form.isDirty || updateUserMutation.isPending.value
-              : false
-          "
-          @click="toggleEditMode"
+          :loading="isUpdatingUser"
+          :disabled="!$form.valid || isUpdatingUser || !someThingChanged"
         />
         <Button
-          v-if="editMode"
           type="button"
           label="Cancel"
           outlined
-          :disabled="updateUserMutation.isPending.value"
+          :disabled="isUpdatingUser"
           @click="onCancel"
         />
       </div>
@@ -85,28 +109,32 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import { Form, type FormSubmitEvent } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { useToast } from "primevue/usetoast";
 import { useAuth } from "@/composables/useAuth";
-
-import type { UserPublic, UserUpdateMe } from "@/client";
+import type { UserUpdateMe } from "@/client";
+import type { AxiosError } from "axios";
+import {
+  usersUpdateUserMeMutation,
+  usersReadUserMeQueryKey,
+} from "@/client/@tanstack/vue-query.gen";
 
 const { user } = useAuth();
 const queryClient = useQueryClient();
 const toast = useToast();
 const editMode = ref(false);
 const error = ref("");
+const formRef = ref();
 
-const initialValues = reactive<UserPublic>({
+const initialValues = reactive({
   full_name: user.value?.full_name || "",
   email: user.value?.email || "",
 });
-
-const EMAIL_PATTERN = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
 const resolver = zodResolver(
   z.object({
@@ -117,14 +145,12 @@ const resolver = zodResolver(
     email: z
       .string()
       .min(1, { message: "Email is required." })
-      .email({ message: "Invalid email address." })
-      .regex(EMAIL_PATTERN, { message: "Invalid email format." }),
+      .email({ message: "Invalid email address." }),
   }),
 );
 
-const updateUserMutation = useMutation({
-  mutationFn: (data: UserUpdateMe) =>
-    UsersService.updateUserMe({ requestBody: data }),
+const { mutateAsync: updateUserInfo, isPending: isUpdatingUser } = useMutation({
+  ...usersUpdateUserMeMutation(),
   onSuccess: () => {
     toast.add({
       severity: "success",
@@ -134,9 +160,9 @@ const updateUserMutation = useMutation({
     });
     editMode.value = false;
     error.value = "";
-    queryClient.invalidateQueries({ queryKey: ["user"] });
+    queryClient.invalidateQueries({ queryKey: [usersReadUserMeQueryKey()] });
   },
-  onError: (err: ApiError) => {
+  onError: (err: AxiosError<{ detail: string }>) => {
     error.value =
       (err.response?.data?.detail as string) ||
       err.message ||
@@ -145,7 +171,6 @@ const updateUserMutation = useMutation({
 });
 
 const toggleEditMode = () => {
-  console.log("toggleEditMode");
   editMode.value = !editMode.value;
   error.value = "";
 };
@@ -156,19 +181,28 @@ interface SubmitEvent {
 }
 
 const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return;
-  if (updateUserMutation.isPending.value) return;
+  console.log("Test");
+
+  console.log(someThingChanged.value, valid, isUpdatingUser.value);
+  if (!valid || isUpdatingUser.value || !someThingChanged.value) return;
 
   error.value = "";
 
-  await updateUserMutation.mutateAsync(values);
+  await updateUserInfo({ body: values });
 };
 
 const onCancel = () => {
   editMode.value = false;
   error.value = "";
-  // Reset form to initial values
-  initialValues.full_name = user.value?.full_name || "";
-  initialValues.email = user.value?.email || "";
 };
+
+const someThingChanged = computed(() => {
+  const formStates = formRef.value?.states;
+  if (!formStates || !user.value) return false;
+
+  return (
+    formStates.full_name?.value !== user.value.full_name ||
+    formStates.email?.value !== user.value.email
+  );
+});
 </script>
