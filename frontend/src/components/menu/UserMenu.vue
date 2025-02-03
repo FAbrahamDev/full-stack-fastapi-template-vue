@@ -30,15 +30,11 @@
     </template>
     <template #end>
       <button
-        class="relative overflow-hidden w-full border-0 bg-transparent flex items-start p-2 pl-4 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200"
+        class="overflow-hidden w-full border-0 flex items-center justify-start gap-2 p-2 pl-4 cursor-pointer"
       >
-        <Avatar
-          image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png"
-          class="mr-2"
-          shape="circle"
-        />
+        <Avatar label="F" class="mr-2" shape="circle" />
         <span class="inline-flex flex-col items-start">
-          <span class="font-bold">Amy Elsner</span>
+          <span class="font-bold">FastAPI Template</span>
           <span class="text-sm">Admin</span>
         </span>
       </button>
@@ -48,7 +44,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 
 const { logout } = useAuthStore();
@@ -59,48 +54,48 @@ const items = ref([
   {
     separator: true,
   },
+  // {
+  //   label: "Documents",
+  //   items: [
+  //     {
+  //       label: "New",
+  //       icon: "pi pi-plus",
+  //       shortcut: "⌘+N",
+  //     },
+  //     {
+  //       label: "Search",
+  //       icon: "pi pi-search",
+  //       shortcut: "⌘+S",
+  //     },
+  //   ],
+  // },
+  // {
+  //   label: "Profile",
+  //   items: [
+  //     {
+  //       label: "Settings",
+  //       icon: "pi pi-cog",
+  //       shortcut: "⌘+O",
+  //     },
+  //     {
+  //       label: "Messages",
+  //       icon: "pi pi-inbox",
+  //       badge: 2,
+  //     },
+  //   ],
+  // },
   {
-    label: "Documents",
-    items: [
-      {
-        label: "New",
-        icon: "pi pi-plus",
-        shortcut: "⌘+N",
-      },
-      {
-        label: "Search",
-        icon: "pi pi-search",
-        shortcut: "⌘+S",
-      },
-    ],
-  },
-  {
-    label: "Profile",
-    items: [
-      {
-        label: "Settings",
-        icon: "pi pi-cog",
-        shortcut: "⌘+O",
-      },
-      {
-        label: "Messages",
-        icon: "pi pi-inbox",
-        badge: 2,
-      },
-      {
-        label: "Logout",
-        icon: "pi pi-sign-out",
-        shortcut: "⌘+Q",
-        onClick: () => logout(),
-      },
-    ],
+    label: "Logout",
+    icon: "pi pi-sign-out",
+    shortcut: "⌘+Q",
+    onClick: () => logout(),
   },
   {
     separator: true,
   },
 ]);
 
-const toggle = (event) => {
+const toggle = (event: MouseEvent) => {
   menu.value.toggle(event);
 };
 </script>

@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import NavigationComponent from "@/components/menu/NavigationComponent.vue";
-</script>
-
 <template>
   <div class="min-h-screen flex container mx-auto py-5">
     <!-- Sidebar -->
@@ -15,3 +11,7 @@ import NavigationComponent from "@/components/menu/NavigationComponent.vue";
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import NavigationComponent from "@/components/menu/NavigationComponent.vue";
+</script>

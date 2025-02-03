@@ -1,4 +1,3 @@
-<!-- EditItem.vue -->
 <template>
   <Dialog
     v-model:visible="visible"
@@ -121,7 +120,10 @@ const { mutateAsync: updateItem, isPending } = useMutation({
     onClose();
   },
   onError: (err) => {
-    error.value = err.message;
+    error.value =
+      (err.response?.data?.detail as string) ||
+      err.message ||
+      "Failed to update item";
   },
 });
 
@@ -153,6 +155,5 @@ const onClose = () => {
   resetForm();
   error.value = "";
   visible.value = false;
-  console.log(visible.value);
 };
 </script>

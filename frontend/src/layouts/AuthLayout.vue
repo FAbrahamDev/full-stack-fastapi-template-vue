@@ -1,4 +1,7 @@
-<!-- layouts/AuthLayout.vue -->
+<script setup lang="ts">
+// No additional setup needed
+</script>
+
 <template>
   <div class="min-h-screen w-full flex items-center justify-center p-4">
     <div class="w-full max-w-md">
@@ -29,7 +32,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-// No additional setup needed
-</script>

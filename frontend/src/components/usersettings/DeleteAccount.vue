@@ -10,7 +10,6 @@
     @click="showDeleteDialog"
   />
 
-  <!-- Delete Confirmation Dialog -->
   <Dialog
     v-model:visible="isDialogVisible"
     modal
@@ -18,13 +17,13 @@
     :style="{ width: '450px' }"
     :closable="false"
   >
-    <div class="flex flex-column gap-3">
+    <div class="flex flex-col gap-3">
       <p class="m-0">
         Are you sure you want to delete your account? This action cannot be
         undone.
       </p>
 
-      <div class="flex flex-column gap-2">
+      <div class="flex flex-col gap-2">
         <InputText
           v-model="confirmText"
           placeholder="Type 'DELETE' to confirm"
@@ -58,16 +57,19 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import Button from "primevue/button";
-import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
+
 import { useToast } from "primevue/usetoast";
+import { useMutation } from "@tanstack/vue-query";
+import { useAuthStore } from "@/stores/auth";
+import { usersDeleteUserMeMutation } from "@/client/@tanstack/vue-query.gen";
+
+const toast = useToast();
+const { logout } = useAuthStore();
 
 const isDialogVisible = ref(false);
 const confirmText = ref("");
 const showError = ref(false);
 const isDeleting = ref(false);
-const toast = useToast();
 
 const showDeleteDialog = () => {
   isDialogVisible.value = true;
@@ -81,6 +83,31 @@ const closeDialog = () => {
   showError.value = false;
 };
 
+const { mutateAsync: deleteAccount } = useMutation({
+  ...usersDeleteUserMeMutation(),
+  onSuccess: () => {
+    toast.add({
+      severity: "success",
+      summary: "Account Deleted",
+      detail: "Your account has been successfully deleted.",
+      life: 3000,
+    });
+    closeDialog();
+    logout();
+  },
+  onError: (error) => {
+    toast.add({
+      severity: "error",
+      summary: "Error",
+      detail:
+        error.response?.data?.detail ||
+        error.message ||
+        "Failed to delete account. Please try again.",
+      life: 3000,
+    });
+  },
+});
+
 const handleDelete = async () => {
   if (confirmText.value !== "DELETE") {
     showError.value = true;
@@ -89,24 +116,7 @@ const handleDelete = async () => {
 
   isDeleting.value = true;
   try {
-    // Add your delete account API call here
-    // await UserService.deleteAccount()
-
-    toast.add({
-      severity: "success",
-      summary: "Account Deleted",
-      detail: "Your account has been successfully deleted.",
-      life: 3000,
-    });
-    closeDialog();
-    // Add any post-deletion logic (e.g., logout, redirect)
-  } catch (error) {
-    toast.add({
-      severity: "error",
-      summary: "Error",
-      detail: "Failed to delete account. Please try again.",
-      life: 3000,
-    });
+    await deleteAccount({});
   } finally {
     isDeleting.value = false;
   }

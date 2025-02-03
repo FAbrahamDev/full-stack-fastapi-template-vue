@@ -1,4 +1,3 @@
-<!-- AddItem.vue -->
 <template>
   <Dialog
     v-model:visible="visible"
@@ -69,16 +68,9 @@ import { useToast } from "primevue/usetoast";
 
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { itemsCreateItemMutation } from "@/client/@tanstack/vue-query.gen.ts";
-import type { Options } from "@hey-api/client-axios";
-import type { AxiosError } from "axios";
 import type { FormSubmitEvent } from "@primevue/forms";
 
-import {
-  type ItemCreate,
-  type ItemsCreateItemData,
-  type ItemsCreateItemError,
-  type ItemsCreateItemResponse,
-} from "@/client";
+import { type ItemCreate } from "@/client";
 
 interface Props {
   modelValue: boolean;
@@ -127,7 +119,10 @@ const mutation = useMutation({
     onClose();
   },
   onError: (err) => {
-    error.value = (err.response?.data?.detail as string) || err.message;
+    error.value =
+      (err.response?.data?.detail as string) ||
+      err.message ||
+      "Failed to create item";
   },
   onSettled: () => {
     queryClient.invalidateQueries({ queryKey: ["items"] });
@@ -139,11 +134,7 @@ const onSubmit = async ({ valid, values }: FormSubmitEvent) => {
 
   error.value = "";
 
-  try {
-    await mutation.mutateAsync({ body: values as ItemCreate });
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : "Failed to create item";
-  }
+  await mutation.mutateAsync({ body: values as ItemCreate });
 };
 
 const resetForm = () => {

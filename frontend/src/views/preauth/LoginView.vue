@@ -40,23 +40,27 @@
         {{ $form.password.error?.message }}
       </Message>
     </div>
-    <div class="flex justify-end">
+
+    <div class="flex justify-between gap-2 items-start">
+      <Message v-if="error" severity="error" size="small" variant="simple">
+        {{ error }}
+      </Message>
+
+      <div class="flex-grow"></div>
+
       <Button
-        class="!text-sm"
+        class="!text-sm flex-shrink-0"
         label="Forgot password?"
         variant="link"
         @click="
+          resetError();
           router.push({
             name: 'recover-password',
             query: { email: $form.username?.value },
-          })
+          });
         "
       />
     </div>
-
-    <Message v-if="error" severity="error" size="small" variant="simple">
-      {{ error }}
-    </Message>
 
     <Button
       type="submit"
@@ -67,13 +71,21 @@
 
     <div>
       Don't have an account?
-      <Button label="Sign up" variant="link" @click="router.push('/signup')" />
+      <Button
+        label="Sign up"
+        variant="link"
+        @click="
+          resetError();
+          router.push('/signup');
+        "
+      />
     </div>
   </Form>
 </template>
 
 <script setup lang="ts">
 import { reactive } from "vue";
+import { storeToRefs } from "pinia";
 
 import type { FormSubmitEvent } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
@@ -85,7 +97,8 @@ import type { BodyLoginAccessToken } from "@/client";
 import { useRouter } from "vue-router";
 const router = useRouter();
 
-const { loginMutation, error, resetError, isLoggedIn } = useAuthStore();
+const { loginMutation, resetError, isLoggedIn } = useAuthStore();
+const { error } = storeToRefs(useAuthStore());
 const { mutateAsync: login, isPending } = loginMutation;
 
 const initialValues = reactive<BodyLoginAccessToken>({

@@ -57,6 +57,7 @@ import { useAuthStore } from "@/stores/auth";
 import type { FormSubmitEvent } from "@primevue/forms";
 import { useMutation } from "@tanstack/vue-query";
 import { loginRecoverPasswordMutation } from "@/client/@tanstack/vue-query.gen.ts";
+
 const { isLoggedIn } = useAuthStore();
 const router = useRouter();
 const toast = useToast();

@@ -54,13 +54,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
+import { useThemeStore } from "@/stores/theme";
 import UserMenu from "@/components/menu/UserMenu.vue";
 
-const router = useRouter();
 const { user } = storeToRefs(useAuthStore());
+const themeStore = useThemeStore();
+const { colorMode } = storeToRefs(themeStore);
 
 interface MenuItem {
   label: string;
@@ -106,14 +107,8 @@ const items = computed(() => {
 });
 
 function toggleDarkMode() {
-  localStorage.setItem(
-    "colorMode",
-    document.documentElement.classList.contains("dark-mode")
-      ? "light-mode"
-      : "dark-mode",
-  );
-
-  document.documentElement.classList.toggle("dark-mode");
+  const newMode = colorMode.value === "dark-mode" ? "light-mode" : "dark-mode";
+  themeStore.setColorMode(newMode);
 }
 </script>
 

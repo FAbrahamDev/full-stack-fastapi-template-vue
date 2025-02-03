@@ -4,21 +4,26 @@
   <div class="w-full md:w-1/2">
     <Form
       v-slot="$form"
+      ref="formRef"
       :initial-values="initialValues"
       :resolver="resolver"
       @submit="onFormSubmit"
       class="flex flex-col gap-4"
     >
       <div class="flex flex-col gap-1">
-        <label for="current_password" class="block mb-2"
-          >Current Password*</label
+        <label
+          for="current_password"
+          class="block mb-2 text-sm text-gray-500 dark:text-gray-400"
         >
+          Current Password
+        </label>
         <Password
           name="current_password"
           placeholder="Current Password"
           toggleMask
           fluid
           :feedback="false"
+          :disabled="isPending"
         />
         <Message
           v-if="$form.current_password?.invalid"
@@ -31,13 +36,19 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="new_password" class="block mb-2">New Password*</label>
+        <label
+          for="new_password"
+          class="block mb-2 text-sm text-gray-500 dark:text-gray-400"
+        >
+          New Password
+        </label>
         <Password
           name="new_password"
           placeholder="New Password"
           toggleMask
           fluid
-          :feedback="true"
+          :feedback="false"
+          :disabled="isPending"
         />
         <Message
           v-if="$form.new_password?.invalid"
@@ -50,15 +61,19 @@
       </div>
 
       <div class="flex flex-col gap-1">
-        <label for="confirm_password" class="block mb-2"
-          >Confirm Password*</label
+        <label
+          for="confirm_password"
+          class="block mb-2 text-sm text-gray-500 dark:text-gray-400"
         >
+          Confirm Password
+        </label>
         <Password
           name="confirm_password"
           placeholder="Confirm Password"
           toggleMask
           fluid
           :feedback="false"
+          :disabled="isPending"
         />
         <Message
           v-if="$form.confirm_password?.invalid"
@@ -74,26 +89,31 @@
         {{ error }}
       </Message>
 
-      <Button
-        type="submit"
-        label="Save"
-        :loading="updatePasswordMutation.isPending.value"
-      />
+      <div class="flex gap-3">
+        <Button
+          type="submit"
+          label="Save"
+          severity="secondary"
+          :loading="isPending"
+          :disabled="!$form.valid || isPending"
+        />
+      </div>
     </Form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import { Form } from "@primevue/forms";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
-
 import { useMutation } from "@tanstack/vue-query";
 import { useToast } from "primevue/usetoast";
+import { usersUpdatePasswordMeMutation } from "@/client/@tanstack/vue-query.gen";
+import type { UpdatePassword } from "@/client/types.gen";
+import type { FormSubmitEvent } from "@primevue/forms";
 
-interface UpdatePasswordForm {
-  current_password: string;
-  new_password: string;
+interface UpdatePasswordForm extends UpdatePassword {
   confirm_password: string;
 }
 
@@ -133,10 +153,10 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 const toast = useToast();
+const formRef = ref();
 
-const updatePasswordMutation = useMutation({
-  mutationFn: (data: Omit<UpdatePasswordForm, "confirm_password">) =>
-    UsersService.updatePasswordMe({ requestBody: data }),
+const { mutateAsync: updatePassword, isPending } = useMutation({
+  ...usersUpdatePasswordMeMutation(),
   onSuccess: () => {
     toast.add({
       severity: "success",
@@ -145,31 +165,24 @@ const updatePasswordMutation = useMutation({
       life: 3000,
     });
   },
-  onError: (err: ApiError) => {
-    error.value = error.value =
+  onError: (err) => {
+    error.value =
       (err.response?.data?.detail as string) ||
       err.message ||
       "Failed to update password";
   },
 });
 
-interface SubmitEvent {
-  valid: boolean;
-  values: UpdatePasswordForm;
-}
-
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
-  if (!valid) return;
-  if (updatePasswordMutation.isPending.value) return;
+const onFormSubmit = async (event: FormSubmitEvent) => {
+  if (!event.valid || isPending.value) return;
 
   error.value = "";
 
-  try {
-    const { confirm_password, ...updateData } = values;
-    await updatePasswordMutation.mutateAsync(updateData);
-  } catch (err) {
-    error.value =
-      err instanceof Error ? err.message : "Failed to update password";
-  }
+  const { confirm_password, ...updateData } =
+    event.values as UpdatePasswordForm;
+
+  await updatePassword({ body: updateData });
+
+  // reset form when prime vue forms is updated to 4.3.0
 };
 </script>

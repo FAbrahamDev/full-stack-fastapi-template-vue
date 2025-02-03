@@ -8,7 +8,7 @@
     </h1>
 
     <div class="card">
-      <Tabs :value="activeTab">
+      <Tabs :value="activeTab" @update:value="updateTab">
         <TabList>
           <Tab v-for="tab in tabsConfig" :key="tab.title" :value="tab.id">
             <div class="flex items-center gap-2">
@@ -31,6 +31,7 @@
 import { ref, computed, type Component } from "vue";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
+import { useRouter, useRoute } from "vue-router";
 import ProgressSpinner from "primevue/progressspinner";
 
 import type { UserPublic } from "@/client";
@@ -45,9 +46,11 @@ interface TabItem {
   title: string;
   component: Component;
   icon: string;
+  path: string;
 }
 
-const activeTab = ref(0);
+const router = useRouter();
+const route = useRoute();
 
 const tabsConfig: TabItem[] = [
   {
@@ -55,26 +58,43 @@ const tabsConfig: TabItem[] = [
     title: "My profile",
     component: UserInformation,
     icon: "pi pi-user",
+    path: "/settings",
   },
   {
     id: 1,
     title: "Password",
     component: ChangePassword,
     icon: "pi pi-lock",
+    path: "/settings/password",
   },
   {
     id: 2,
     title: "Appearance",
     component: Appearance,
     icon: "pi pi-palette",
+    path: "/settings/appearance",
   },
   {
     id: 3,
     title: "Danger zone",
     component: DeleteAccount,
     icon: "pi pi-exclamation-triangle",
+    path: "/settings/danger",
   },
 ];
+
+const activeTab = computed(() => {
+  const path = route.path;
+  const tab = tabsConfig.findIndex((tab) => tab.path === path);
+  return tab >= 0 ? tab : 0;
+});
+
+const updateTab = (newTab: string | number) => {
+  const tab = tabsConfig[Number(newTab)];
+  if (tab) {
+    router.push({ path: tab.path, replace: true });
+  }
+};
 
 const { user, isLoading } = storeToRefs(useAuthStore());
 </script>

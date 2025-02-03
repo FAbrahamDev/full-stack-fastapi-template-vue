@@ -1,13 +1,13 @@
 <template>
   <h2 class="text-lg font-semibold py-4">Appearance</h2>
 
-  <div class="flex flex-column gap-3">
+  <div class="flex flex-col gap-3">
     <div class="flex align-items-center">
       <RadioButton
         v-model="colorMode"
         inputId="light"
         name="theme"
-        value="light"
+        value="light-mode"
       />
       <label for="light" class="ml-2">
         Light Mode
@@ -20,7 +20,7 @@
         v-model="colorMode"
         inputId="dark"
         name="theme"
-        value="dark"
+        value="dark-mode"
       />
       <label for="dark" class="ml-2">Dark Mode</label>
     </div>
@@ -28,16 +28,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useThemeStore } from "@/stores/theme";
 
-// get the current color mode from local storage
-const colorMode = ref(localStorage.getItem("colorMode") || "light-mode");
+const themeStore = useThemeStore();
+const { colorMode } = storeToRefs(themeStore);
 
-// watch for changes in color mode and update the local storage
-watch(colorMode, (value) => {
-  localStorage.setItem("colorMode", value);
-
-  // change color mode by setting dark-mode or removing it
-  document.documentElement.classList.toggle("dark-mode", value === "dark-mode");
+watch(colorMode, (value: string) => {
+  themeStore.setColorMode(value as "light-mode" | "dark-mode");
 });
 </script>

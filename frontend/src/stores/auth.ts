@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { AxiosError } from "axios";
@@ -17,14 +17,20 @@ export const useAuthStore = defineStore("auth", () => {
   const toast = usePrimeToast();
   const queryClient = useQueryClient();
 
+  // Add a reactive ref to track auth state
+  const accessToken = ref<string | null>(localStorage.getItem("access_token"));
+
   const isLoggedIn = (): boolean => {
-    return localStorage.getItem("access_token") !== null;
+    return accessToken.value !== null;
   };
+
+  // Create a computed property for the enabled condition
+  const isUserQueryEnabled = computed(() => isLoggedIn());
 
   // Current user query
   const { data: user, isLoading } = useQuery({
     ...usersReadUserMeOptions(),
-    enabled: isLoggedIn(),
+    enabled: isUserQueryEnabled,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
   });
@@ -63,6 +69,7 @@ export const useAuthStore = defineStore("auth", () => {
     ...loginAccessTokenMutation(),
     onSuccess: (response) => {
       localStorage.setItem("access_token", response.access_token);
+      accessToken.value = response.access_token; // Update the reactive ref
       router.push("/");
       // Invalidate and refetch user data after login
       queryClient.invalidateQueries({
@@ -83,6 +90,7 @@ export const useAuthStore = defineStore("auth", () => {
   // Logout function
   const logout = () => {
     localStorage.removeItem("access_token");
+    accessToken.value = null; // Update the reactive ref
     // Clear user data from cache
     queryClient.clear();
     router.push("/login");

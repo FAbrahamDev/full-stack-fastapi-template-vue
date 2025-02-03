@@ -24,7 +24,7 @@ const router = createRouter({
           component: () => import("../views/ItemView.vue"),
         },
         {
-          path: "/settings",
+          path: "/settings/:tab?",
           name: "settings",
           component: () => import("../views/UserSettings.vue"),
         },

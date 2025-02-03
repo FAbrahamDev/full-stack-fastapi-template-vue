@@ -1,4 +1,3 @@
-<!-- EditUser.vue -->
 <template>
   <Dialog
     v-model:visible="visible"
@@ -209,7 +208,10 @@ const { mutateAsync: updateUser, isPending } = useMutation({
     onClose();
   },
   onError: (err) => {
-    error.value = (err.response?.data?.detail as string) || err.message;
+    error.value =
+      (err.response?.data?.detail as string) ||
+      err.message ||
+      "Failed to update user";
   },
 });
 
