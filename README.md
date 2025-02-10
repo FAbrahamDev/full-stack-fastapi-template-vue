@@ -9,12 +9,14 @@
     - 🧰 [SQLModel](https://sqlmodel.tiangolo.com) for the Python SQL database interactions (ORM).
     - 🔍 [Pydantic](https://docs.pydantic.dev), used by FastAPI, for the data validation and settings management.
     - 💾 [PostgreSQL](https://www.postgresql.org) as the SQL database.
-- 🚀 [React](https://react.dev) for the frontend.
-    - 💃 Using TypeScript, hooks, Vite, and other parts of a modern frontend stack.
-    - 🎨 [Chakra UI](https://chakra-ui.com) for the frontend components.
-    - 🤖 An automatically generated frontend client.
-    - 🧪 [Playwright](https://playwright.dev) for End-to-End testing.
-    - 🦇 Dark mode support.
+- 🚀 [Vue 3](https://vuejs.org) for the frontend.
+    - 💃 Using TypeScript, Composition API, Vite, and other parts of a modern frontend stack.
+    - 🎨 [PrimeVue](https://primevue.org) for the frontend components with Aura theme.
+    - 🔄 [@tanstack/vue-query](https://tanstack.com/query/latest) for server state management.
+    - 📦 [Pinia](https://pinia.vuejs.org) for client state management.
+    - 🎭 [Playwright](https://playwright.dev) for End-to-End testing.
+    - 🦇 Dark mode support with PrimeVue theming.
+    - 🤖 An automatically generated frontend client with type safety.
 - 🐋 [Docker Compose](https://www.docker.com) for development and production.
 - 🔒 Secure password hashing by default.
 - 🔑 JWT (JSON Web Token) authentication.

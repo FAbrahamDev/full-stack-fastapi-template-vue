@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { AxiosError } from "axios";
@@ -28,11 +28,29 @@ export const useAuthStore = defineStore("auth", () => {
   const isUserQueryEnabled = computed(() => isLoggedIn());
 
   // Current user query
-  const { data: user, isLoading } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    isError: isUserQueryError,
+  } = useQuery({
     ...usersReadUserMeOptions(),
     enabled: isUserQueryEnabled,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 403 Forbidden errors
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        return false;
+      }
+      // Default retry behavior for other errors (3 times)
+      return failureCount < 3;
+    },
+  });
+
+  watch(isUserQueryError, (newVal) => {
+    if (newVal) {
+      logout();
+    }
   });
 
   // Sign up mutation
