@@ -63,6 +63,8 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import type { FormSubmitEvent } from "@primevue/forms";
+
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "vue-router";
@@ -110,11 +112,6 @@ const resolver = zodResolver(
 
 const error = ref<string>("");
 
-interface SubmitEvent {
-  valid: boolean;
-  values: FormValues;
-}
-
 const { mutateAsync, isPending } = useMutation({
   ...loginResetPasswordMutation(),
   onError: (err) => {
@@ -124,7 +121,7 @@ const { mutateAsync, isPending } = useMutation({
   },
 });
 
-const onFormSubmit = async ({ valid, values }: SubmitEvent) => {
+const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (!valid || isPending.value) return;
 
   const token = router.currentRoute.value.query.token as string;

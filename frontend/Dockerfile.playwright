@@ -1,0 +1,18 @@
+FROM mcr.microsoft.com/playwright:v1.49.0-jammy
+
+WORKDIR /app
+
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies
+RUN pnpm install
+
+# Copy the rest of the application
+COPY . .
+
+# Set default command to run tests
+CMD ["npx", "playwright", "test"] 

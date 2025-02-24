@@ -1,6 +1,6 @@
 <template>
-  <button @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">
-    <Avatar shape="circle" label="F" />
+  <button @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" data-testid="user-menu">
+    <Avatar shape="circle" :label="initials" />
   </button>
   <Menu ref="menu" :model="items" class="w-full md:w-60" :popup="true">
     <template #start>
@@ -9,10 +9,11 @@
           src="@/assets/images/fastapi-logo-text.svg"
           alt="Logo"
           class="h-8 w-auto mx-auto"
-        />
+        />  
       </span>
     </template>
-    <template #submenulabel="{ item }">
+    <!-- PrimeVue type definition mismatch, submenulabel slot exists in docs and works but is not typed -->
+    <template #submenuheader="{ item }">
       <span class="text-primary font-bold">{{ item.label }}</span>
     </template>
     <template #item="{ item, props }">
@@ -34,8 +35,8 @@
       >
         <Avatar label="F" class="mr-2" shape="circle" />
         <span class="inline-flex flex-col items-start">
-          <span class="font-bold">FastAPI Template</span>
-          <span class="text-sm">Admin</span>
+          <span class="font-bold">{{ user?.full_name || user?.email }}</span>
+          <span class="text-sm" v-if="user?.full_name">{{ user?.email }}</span>
         </span>
       </button>
     </template>
@@ -43,17 +44,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import { storeToRefs } from "pinia";
 
 const { logout } = useAuthStore();
+const { user } = storeToRefs(useAuthStore());
 
 const menu = ref();
 
 const items = ref([
-  {
-    separator: true,
-  },
+  // {
+  //   separator: true,
+  // },
   // {
   //   label: "Documents",
   //   items: [
@@ -85,7 +88,7 @@ const items = ref([
   //   ],
   // },
   {
-    label: "Logout",
+    label: "Log Out",
     icon: "pi pi-sign-out",
     shortcut: "⌘+Q",
     onClick: () => logout(),
@@ -98,4 +101,21 @@ const items = ref([
 const toggle = (event: MouseEvent) => {
   menu.value.toggle(event);
 };
+
+const initials = computed(() => {
+  const fullNameInitials = user.value?.full_name
+    ?.split(" ")
+    .map((name) => name[0])
+    .join("");
+
+  if (fullNameInitials) {
+    return fullNameInitials;
+  }
+
+  return user.value?.email
+    ?.split("@")[0]
+    .split(".")
+    .map((name) => name[0])
+    .join("");
+});
 </script>

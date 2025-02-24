@@ -114,7 +114,7 @@ const resolver = zodResolver(
 );
 
 const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
-  if (!valid || isPending.value) return;
+  if (!valid || isPending) return;
 
   resetError();
   await login({ body: values as BodyLoginAccessToken });
