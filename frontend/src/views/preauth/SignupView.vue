@@ -5,6 +5,7 @@
     :resolver="resolver"
     @submit="onFormSubmit"
     class="flex flex-col gap-4"
+    novalidate
   >
     <div class="flex flex-col gap-1">
       <InputText name="full_name" type="text" placeholder="Full Name" fluid />
