@@ -9,7 +9,7 @@
           src="@/assets/images/fastapi-logo-text.svg"
           alt="Logo"
           class="h-8 w-auto mx-auto"
-        />  
+        />
       </span>
     </template>
     <!-- PrimeVue type definition mismatch, submenulabel slot exists in docs and works but is not typed -->

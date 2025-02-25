@@ -18,4 +18,4 @@ if (typeof FIRST_SUPERUSER_PASSWORD !== "string") {
 }
 
 export const firstSuperuser = FIRST_SUPERUSER as string
-export const firstSuperuserPassword = FIRST_SUPERUSER_PASSWORD as string 
+export const firstSuperuserPassword = FIRST_SUPERUSER_PASSWORD as string

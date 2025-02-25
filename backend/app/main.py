@@ -34,12 +34,8 @@ def custom_openapi():
     # Add HTTPException schema
     openapi_schema["components"]["schemas"]["HTTPException"] = {
         "type": "object",
-        "properties": {
-            "detail": {
-                "type": "string"
-            }
-        },
-        "required": ["detail"]
+        "properties": {"detail": {"type": "string"}},
+        "required": ["detail"],
     }
 
     app.openapi_schema = openapi_schema

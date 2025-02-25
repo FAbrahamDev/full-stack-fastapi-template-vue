@@ -124,4 +124,4 @@ test("Redirects to /login when token is wrong", async ({ page }) => {
   await page.goto("/settings")
   await page.waitForURL("/login")
   await expect(page).toHaveURL("/login")
-}) 
+})

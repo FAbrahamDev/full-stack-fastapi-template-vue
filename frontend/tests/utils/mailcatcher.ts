@@ -35,4 +35,4 @@ export async function findLastEmail({
   }
 
   throw new Error("Email not found within timeout")
-} 
+}

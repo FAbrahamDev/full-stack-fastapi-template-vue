@@ -122,4 +122,4 @@ test("Weak new password validation", async ({ page, request }) => {
   await expect(
     page.getByText("Password must be at least 8 characters"),
   ).toBeVisible()
-}) 
+})

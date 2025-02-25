@@ -1,4 +1,3 @@
-import logging
 import secrets
 import warnings
 from pathlib import Path
@@ -15,7 +14,6 @@ from pydantic import (
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
-
 
 PROJECT_DIR = Path(__file__).parent.parent.parent.parent
 
