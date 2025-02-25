@@ -1,6 +1,6 @@
 <template>
-  <button @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" data-testid="user-menu">
-    <Avatar shape="circle" :label="initials" />
+  <button @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" data-testid="user-menu" class="focus:outline-none focus:ring-2 focus:ring-primary" aria-label="User menu">
+    <Avatar shape="circle" :label="initials" aria-hidden="true" />
   </button>
   <Menu ref="menu" :model="items" class="w-full md:w-60" :popup="true">
     <template #start>
@@ -30,15 +30,15 @@
       </a>
     </template>
     <template #end>
-      <button
-        class="overflow-hidden w-full border-0 flex items-center justify-start gap-2 p-2 pl-4 cursor-pointer"
+      <div
+        class="w-full flex items-center gap-2 p-2 overflow-hidden"
       >
-        <Avatar label="F" class="mr-2" shape="circle" />
-        <span class="inline-flex flex-col items-start">
-          <span class="font-bold">{{ user?.full_name || user?.email }}</span>
-          <span class="text-sm" v-if="user?.full_name">{{ user?.email }}</span>
-        </span>
-      </button>
+        <Avatar :label="initials" shape="circle" class="flex-shrink-0" />
+        <div class="flex flex-col overflow-hidden">
+          <div class="font-bold truncate">{{ user?.full_name || user?.email }}</div>
+          <div class="text-sm truncate" v-if="user?.full_name">{{ user?.email }}</div>
+        </div>
+      </div>
     </template>
   </Menu>
 </template>
@@ -52,6 +52,11 @@ const { logout } = useAuthStore();
 const { user } = storeToRefs(useAuthStore());
 
 const menu = ref();
+
+const handleLogout = () => {
+  logout();
+  menu.value.hide();
+};
 
 const items = ref([
   // {
@@ -91,7 +96,7 @@ const items = ref([
     label: "Log Out",
     icon: "pi pi-sign-out",
     shortcut: "⌘+Q",
-    onClick: () => logout(),
+    onClick: () => handleLogout(),
   },
   {
     separator: true,
@@ -103,19 +108,27 @@ const toggle = (event: MouseEvent) => {
 };
 
 const initials = computed(() => {
-  const fullNameInitials = user.value?.full_name
-    ?.split(" ")
-    .map((name) => name[0])
-    .join("");
-
-  if (fullNameInitials) {
-    return fullNameInitials;
+  if (!user.value) return '';
+  
+  const fullName = user.value.full_name;
+  if (fullName && fullName.trim()) {
+    return fullName
+      .split(" ")
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase();
   }
 
-  return user.value?.email
-    ?.split("@")[0]
-    .split(".")
-    .map((name) => name[0])
-    .join("");
+  const email = user.value.email;
+  if (email && email.includes('@')) {
+    return email
+      .split("@")[0]
+      .split(".")
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase();
+  }
+  
+  return 'U'; // Default fallback
 });
 </script>

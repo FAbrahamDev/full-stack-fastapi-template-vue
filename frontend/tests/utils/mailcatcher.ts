@@ -22,7 +22,7 @@ export async function findLastEmail({
   const startTime = Date.now()
 
   while (Date.now() - startTime < timeout) {
-    const response = await request.get(`${process.env.MAILCATCHER_HOST}/messages`)
+    const response = await request.get(`${process.env.MAILCATCHER_HOST || 'http://localhost:1080'}/messages`)
     const emails = await response.json()
 
     for (const email of emails) {

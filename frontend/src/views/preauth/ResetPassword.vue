@@ -13,13 +13,16 @@
     </p>
 
     <div class="flex flex-col gap-1">
-      <label for="new_password">Set Password</label>
-      <Password
-        id="new_password"
-        name="new_password"
-        placeholder="Password"
-        toggleMask
-      />
+      <IconField>
+        <InputIcon class="pi pi-lock" />
+        <Password
+          name="new_password"
+          placeholder="New Password"
+          toggleMask
+          fluid
+          :feedback="false"
+        />
+      </IconField>
       <Message
         v-if="$form.new_password?.invalid"
         severity="error"
@@ -31,13 +34,16 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="confirm_password">Confirm Password</label>
-      <Password
-        id="confirm_password"
-        name="confirm_password"
-        placeholder="Confirm Password"
-        toggleMask
-      />
+      <IconField>
+        <InputIcon class="pi pi-lock" />
+        <Password
+          name="confirm_password"
+          placeholder="Confirm Password"
+          toggleMask
+          fluid
+          :feedback="false"
+        />
+      </IconField>
       <Message
         v-if="$form.confirm_password?.invalid"
         severity="error"
@@ -72,6 +78,8 @@ import { useToast } from "primevue/usetoast";
 import { useAuthStore } from "@/stores/auth";
 import { useMutation } from "@tanstack/vue-query";
 import { loginResetPasswordMutation } from "@/client/@tanstack/vue-query.gen.ts";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
 
 const { isLoggedIn } = useAuthStore();
 const router = useRouter();
@@ -92,7 +100,7 @@ const resolver = zodResolver(
     .object({
       new_password: z
         .string()
-        .min(3, { message: "Minimum 3 characters." })
+        .min(8, { message: "Password must be at least 8 characters." })
         .refine((value) => /[a-z]/.test(value), {
           message: "Must have a lowercase letter.",
         })
