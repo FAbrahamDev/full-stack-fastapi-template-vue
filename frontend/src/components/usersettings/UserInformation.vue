@@ -48,6 +48,7 @@
           >Full name</label
         >
         <InputText
+          id="full_name"
           name="full_name"
           placeholder="Full name"
           :disabled="isUpdatingUser"
@@ -69,6 +70,7 @@
           >Email</label
         >
         <InputText
+          id="email"
           name="email"
           type="email"
           placeholder="Email"

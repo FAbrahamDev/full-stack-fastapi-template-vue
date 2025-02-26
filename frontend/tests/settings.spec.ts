@@ -4,7 +4,7 @@ import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser, logOutUser } from "./utils/user"
 
-const tabs = ["My profile", "Password", "Appearance"]
+const tabs = ["My profile", "Password", "Appearance", "Danger zone"]
 
 // User Information
 
@@ -42,9 +42,10 @@ test.describe("Edit user full name and email successfully", () => {
     await page.getByLabel("Full name").fill(updatedName)
     await page.getByRole("button", { name: "Save" }).click()
     await expect(page.getByText("User updated successfully")).toBeVisible()
+
     // Check if the new name is displayed on the page
     await expect(
-      page.getByLabel("My profile").getByText(updatedName, { exact: true }),
+      page.getByText(updatedName, { exact: true }),
     ).toBeVisible()
   })
 
@@ -65,7 +66,7 @@ test.describe("Edit user full name and email successfully", () => {
     await page.getByRole("button", { name: "Save" }).click()
     await expect(page.getByText("User updated successfully")).toBeVisible()
     await expect(
-      page.getByLabel("My profile").getByText(updatedEmail, { exact: true }),
+      page.getByText(updatedEmail, { exact: true }),
     ).toBeVisible()
   })
 })
@@ -108,7 +109,6 @@ test.describe("Edit user with invalid data", () => {
     await page.getByRole("button", { name: "Cancel" }).first().click()
     await expect(
       page
-        .getByLabel("My profile")
         .getByText(user.full_name as string, { exact: true }),
     ).toBeVisible()
   })
@@ -128,9 +128,7 @@ test.describe("Edit user with invalid data", () => {
     await page.getByRole("button", { name: "Edit" }).click()
     await page.getByLabel("Email").fill(updatedEmail)
     await page.getByRole("button", { name: "Cancel" }).first().click()
-    await expect(
-      page.getByLabel("My profile").getByText(email, { exact: true }),
-    ).toBeVisible()
+    await expect(page.getByText(email, { exact: true })).toBeVisible()
   })
 })
 
@@ -205,8 +203,7 @@ test.describe("Change password with invalid data", () => {
     await page.getByPlaceholder("Current Password").fill(password)
     await page.getByPlaceholder("New Password").fill(newPassword)
     await page.getByPlaceholder("Confirm Password").fill(confirmPassword)
-    await page.getByLabel("Password", { exact: true }).locator("form").click()
-    await expect(page.getByText("The passwords do not match")).toBeVisible()
+    await expect(page.getByText('Passwords don\'t match')).toBeVisible()
   })
 
   test("Current password and new password are the same", async ({ page }) => {
@@ -235,7 +232,7 @@ test.describe("Change password with invalid data", () => {
 test("Appearance tab is visible", async ({ page }) => {
   await page.goto("/settings")
   await page.getByRole("tab", { name: "Appearance" }).click()
-  await expect(page.getByLabel("Appearance")).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Appearance' })).toBeVisible()
 })
 
 test("User can switch from light mode to dark mode and vice versa", async ({
@@ -247,41 +244,39 @@ test("User can switch from light mode to dark mode and vice versa", async ({
   // Ensure the initial state is light mode
   if (
     await page.evaluate(() =>
-      document.documentElement.classList.contains("dark")
+      document.documentElement.classList.contains("dark-mode")
     )
   ) {
     await page
-      .locator("label")
-      .filter({ hasText: "Light Mode" })
-      .locator("span")
-      .first()
+      .getByLabel('Light Mode')
       .click()
   }
 
-  let isLightMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("light")
+  // Check if light mode (no class)
+  let isLightMode = await page.evaluate(() => 
+    document.documentElement.classList.length === 0
   )
   expect(isLightMode).toBe(true)
 
+  // Switch to dark mode
   await page
-    .locator("label")
-    .filter({ hasText: "Dark Mode" })
-    .locator("span")
-    .first()
+    .getByLabel('Dark Mode')
     .click()
+  
+  // Check if dark mode class is applied
   const isDarkMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("dark")
+    document.documentElement.classList.contains("dark-mode")
   )
   expect(isDarkMode).toBe(true)
 
+  // Switch back to light mode
   await page
-    .locator("label")
-    .filter({ hasText: "Light Mode" })
-    .locator("span")
-    .first()
+    .getByLabel('Light Mode')
     .click()
-  isLightMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("light")
+  
+  // Check if light mode again (no class)
+  isLightMode = await page.evaluate(() => 
+    document.documentElement.classList.length === 0
   )
   expect(isLightMode).toBe(true)
 })
@@ -293,38 +288,37 @@ test("Selected mode is preserved across sessions", async ({ page }) => {
   // Ensure the initial state is light mode
   if (
     await page.evaluate(() =>
-      document.documentElement.classList.contains("dark")
+      document.documentElement.classList.contains("dark-mode")
     )
   ) {
     await page
-      .locator("label")
-      .filter({ hasText: "Light Mode" })
-      .locator("span")
-      .first()
+      .getByLabel('Light Mode')
       .click()
   }
 
-  const isLightMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("light")
+  // Check if light mode (no class)
+  const isLightMode = await page.evaluate(() => 
+    document.documentElement.classList.length === 0
   )
   expect(isLightMode).toBe(true)
 
+  // Switch to dark mode
   await page
-    .locator("label")
-    .filter({ hasText: "Dark Mode" })
-    .locator("span")
-    .first()
+    .getByLabel('Dark Mode')
     .click()
+  
+  // Check if dark mode
   let isDarkMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("dark")
+    document.documentElement.classList.contains("dark-mode")
   )
   expect(isDarkMode).toBe(true)
 
   await logOutUser(page)
   await logInUser(page, firstSuperuser, firstSuperuserPassword)
 
+  // Check if dark mode is preserved after login
   isDarkMode = await page.evaluate(() =>
-    document.documentElement.classList.contains("dark")
+    document.documentElement.classList.contains("dark-mode")
   )
   expect(isDarkMode).toBe(true)
 }) 
