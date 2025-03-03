@@ -55,7 +55,7 @@
 
     <template #empty> No item found. </template>
     <template #loading>
-      <div class="my-2">Loading item data. Please wait...</div>
+      <div class="my-2" data-testid="loading-item-data">Loading item data. Please wait...</div>
     </template>
   </DataTable>
 </template>
