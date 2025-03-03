@@ -1,17 +1,26 @@
 <!-- Template -->
 <template>
+  <!-- Large screens - horizontal navbar with text -->
   <Card
+    v-if="!mobile"
     :pt="{
       body: 'h-full !px-3',
       content: 'h-full flex flex-col justify-between',
     }"
   >
     <template #content>
-      <div class="flex flex-col items-center gap-4">
+      <div class="flex flex-col gap-4 h-full">
         <img
+          v-if="!lgAndUp"
           src="@/assets/images/fastapi-logo.svg"
           alt="Logo"
           class="h-8 w-auto mx-auto mb-5"
+        />
+        <img
+          v-else
+          src="@/assets/images/fastapi-logo-text.svg"
+          alt="Logo"
+          class="h-7 w-auto mx-2 mb-5"
         />
 
         <router-link
@@ -20,36 +29,92 @@
           v-slot="{ href, navigate }"
           :to="item.route"
           custom
-          :v-tooltip="item.label"
         >
           <Button
+            :class="lgAndUp ? '!justify-start' : ''"
             :href="href"
             @click="navigate"
             severity="contrast"
-            :aria-label="item.label"
+            :icon="item.icon"
+            :label="lgAndUp ? item.label : undefined"
             variant="text"
-            v-tooltip="item.label"
-            placeholder="Right"
-          >
-            <span :class="item.icon" />
-            <Badge v-if="item.badge" :value="item.badge" class="ml-2" />
-          </Button>
+            v-tooltip="!lgAndUp ? item.label : undefined"
+          />
         </router-link>
-      </div>
 
-      <div class="flex-1" />
+        <div class="flex-grow" />
 
-      <div class="flex flex-col items-center gap-2">
         <Button
+          :class="lgAndUp ? '!justify-start' : ''"
           icon="pi pi-sun"
+          :label="lgAndUp ? 'Theme' : undefined"
           @click="toggleDarkMode"
           variant="text"
-          size="small"
+          v-tooltip="!lgAndUp ? 'Theme' : undefined"
         />
         <UserMenu />
       </div>
     </template>
   </Card>
+
+  <!-- Mobile view - burger menu -->
+  <template v-else>
+    <Button
+      class="!fixed top-2 left-2"
+      icon="pi pi-bars"
+      @click="toggleMobileMenu"
+      variant="text"
+      aria-label="Menu"
+    />
+
+    <!-- Mobile menu dropdown -->
+    <Sidebar v-model:visible="mobileMenuVisible" position="left" class="w-64">
+      <div class="flex flex-col gap-4 h-full items-start">
+        <img
+          src="@/assets/images/fastapi-logo-text.svg"
+          alt="Logo"
+          class="h-7 w-auto mx-2 mb-5"
+        />
+        <router-link
+          v-for="item in items"
+          :key="item.label"
+          v-slot="{ href, navigate }"
+          :to="item.route"
+          custom
+        >
+          <Button
+            class="!justify-start"
+            :href="href"
+            @click="
+              () => {
+                navigate();
+                mobileMenuVisible = false;
+              }
+            "
+            severity="contrast"
+            :icon="item.icon"
+            :label="item.label"
+            variant="text"
+          />
+        </router-link>
+
+        <div class="flex-grow" />
+
+        <Divider />
+
+        <Button
+          icon="pi pi-sun"
+          label="Theme"
+          @click="toggleDarkMode"
+          variant="text"
+        />
+
+        <div class="ps-3">
+          <UserMenu />
+        </div>
+      </div>
+    </Sidebar>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -57,11 +122,21 @@ import { ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import { useThemeStore } from "@/stores/theme";
+import { useDisplay } from "@/composables/useDisplay";
 import UserMenu from "@/components/menu/UserMenu.vue";
 
 const { user } = storeToRefs(useAuthStore());
 const themeStore = useThemeStore();
 const { colorMode } = storeToRefs(themeStore);
+
+// Responsive handling using useDisplay
+const { mobile, lgAndUp } = useDisplay();
+
+const mobileMenuVisible = ref(false);
+
+const toggleMobileMenu = () => {
+  mobileMenuVisible.value = !mobileMenuVisible.value;
+};
 
 interface MenuItem {
   label: string;
@@ -69,7 +144,6 @@ interface MenuItem {
   route: string;
   url?: string;
   target?: string;
-  badge?: string;
   items?: MenuItem[];
 }
 

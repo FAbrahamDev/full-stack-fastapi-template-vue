@@ -8,7 +8,7 @@
     </h1>
 
     <div class="card">
-      <Tabs :value="activeTab" @update:value="updateTab">
+      <Tabs :value="activeTab" @update:value="updateTab" scrollable>
         <TabList>
           <Tab v-for="tab in tabsConfig" :key="tab.title" :value="tab.id">
             <div class="flex items-center gap-2">
