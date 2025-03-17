@@ -9,7 +9,7 @@
     <div class="flex flex-col gap-1">
       <IconField>
         <InputIcon class="pi pi-user" />
-        <InputText name="username" type="text" placeholder="Username" fluid />
+        <InputText name="username" type="text" placeholder="Email" fluid />
       </IconField>
       <Message
         v-if="$form.username?.invalid"

@@ -1,8 +1,29 @@
 <template>
-  <button @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" data-testid="user-menu">
-    <Avatar shape="circle" :label="initials" />
+  <button
+    @click="toggle"
+    aria-haspopup="true"
+    aria-controls="overlay_menu"
+    data-testid="user-menu"
+    class="focus:outline-none focus:ring-2 focus:ring-primary"
+    aria-label="User menu"
+  >
+    <div
+      class="w-full flex items-center justify-center overflow-hidden"
+      :class="{ 'max-w-[10em]': lgAndUp }"
+    >
+      <Avatar :label="initials" shape="circle" class="flex-shrink-0" />
+      <div v-if="lgAndUp || mobile" class="flex flex-col overflow-hidden ms-2">
+        <div class="truncate">
+          {{ user?.full_name || user?.email }}
+        </div>
+        <div class="text-sm truncate" v-if="user?.full_name">
+          {{ user?.email }}
+        </div>
+      </div>
+    </div>
   </button>
-  <Menu ref="menu" :model="items" class="w-full md:w-60" :popup="true">
+
+  <Menu ref="menu" :model="items" :popup="true">
     <template #start>
       <span class="flex items-center gap-1 px-2 py-3">
         <img
@@ -12,10 +33,12 @@
         />
       </span>
     </template>
+
     <!-- PrimeVue type definition mismatch, submenulabel slot exists in docs and works but is not typed -->
     <template #submenuheader="{ item }">
       <span class="text-primary font-bold">{{ item.label }}</span>
     </template>
+
     <template #item="{ item, props }">
       <a class="flex items-center" v-bind="props.action" @click="item.onClick">
         <span :class="item.icon" />
@@ -24,15 +47,17 @@
       </a>
     </template>
     <template #end>
-      <button
-        class="overflow-hidden w-full border-0 flex items-center justify-start gap-2 p-2 pl-4 cursor-pointer"
-      >
-        <Avatar label="F" class="mr-2" shape="circle" />
-        <span class="inline-flex flex-col items-start">
-          <span class="font-bold">{{ user?.full_name || user?.email }}</span>
-          <span class="text-sm" v-if="user?.full_name">{{ user?.email }}</span>
-        </span>
-      </button>
+      <div class="w-full flex items-center gap-2 p-2 overflow-hidden">
+        <Avatar :label="initials" shape="circle" class="flex-shrink-0" />
+        <div class="flex flex-col overflow-hidden">
+          <div class="font-bold truncate">
+            {{ user?.full_name || user?.email }}
+          </div>
+          <div class="text-sm truncate" v-if="user?.full_name">
+            {{ user?.email }}
+          </div>
+        </div>
+      </div>
     </template>
   </Menu>
 </template>
@@ -41,11 +66,18 @@
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
+import { useDisplay } from "@/composables/useDisplay";
 
 const { logout } = useAuthStore();
 const { user } = storeToRefs(useAuthStore());
+const { lgAndUp, mobile } = useDisplay();
 
 const menu = ref();
+
+const handleLogout = () => {
+  logout();
+  menu.value.hide();
+};
 
 const items = ref([
   // {
@@ -81,7 +113,7 @@ const items = ref([
   {
     label: "Log Out",
     icon: "pi pi-sign-out",
-    onClick: () => logout(),
+    onClick: () => handleLogout(),
   },
   {
     separator: true,
@@ -93,19 +125,27 @@ const toggle = (event: MouseEvent) => {
 };
 
 const initials = computed(() => {
-  const fullNameInitials = user.value?.full_name
-    ?.split(" ")
-    .map((name) => name[0])
-    .join("");
+  if (!user.value) return "";
 
-  if (fullNameInitials) {
-    return fullNameInitials;
+  const fullName = user.value.full_name;
+  if (fullName && fullName.trim()) {
+    return fullName
+      .split(" ")
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase();
   }
 
-  return user.value?.email
-    ?.split("@")[0]
-    .split(".")
-    .map((name) => name[0])
-    .join("");
+  const email = user.value.email;
+  if (email && email.includes("@")) {
+    return email
+      .split("@")[0]
+      .split(".")
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase();
+  }
+
+  return "U"; // Default fallback
 });
 </script>

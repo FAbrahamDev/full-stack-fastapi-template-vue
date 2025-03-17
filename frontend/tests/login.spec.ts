@@ -8,8 +8,8 @@ type OptionsType = {
   exact?: boolean
 }
 
-const fillForm = async (page: Page, username: string, password: string) => {
-  await page.getByPlaceholder("Username").fill(username)
+const fillForm = async (page: Page, email: string, password: string) => {
+  await page.getByPlaceholder("Email").fill(email)
   await page.getByPlaceholder("Password", { exact: true }).fill(password)
 }
 
@@ -27,7 +27,7 @@ const verifyInput = async (
 test("Inputs are visible, empty and editable", async ({ page }) => {
   await page.goto("/login")
 
-  await verifyInput(page, "Username")
+  await verifyInput(page, "Email")
   await verifyInput(page, "Password", { exact: true })
 })
 
@@ -45,7 +45,7 @@ test("Forgot Password link is visible", async ({ page }) => {
   ).toBeVisible()
 })
 
-test("Log in with valid username and password ", async ({ page }) => {
+test("Log in with valid email and password ", async ({ page }) => {
   await page.goto("/login")
 
   await fillForm(page, firstSuperuser, firstSuperuserPassword)
@@ -58,10 +58,10 @@ test("Log in with valid username and password ", async ({ page }) => {
   ).toBeVisible()
 })
 
-test("Log in with invalid username", async ({ page }) => {
+test("Log in with invalid email", async ({ page }) => {
   await page.goto("/login")
 
-  await fillForm(page, "invalidusername", firstSuperuserPassword)
+  await fillForm(page, "invalidemail", firstSuperuserPassword)
   await page.getByRole("button", { name: "Log In" }).click()
 
   await expect(page.getByText("Incorrect email or password")).toBeVisible()

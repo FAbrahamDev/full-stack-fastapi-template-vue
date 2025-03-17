@@ -5,6 +5,7 @@
     :resolver="resolver"
     @submit="onFormSubmit"
     class="flex flex-col gap-4"
+    novalidate
   >
     <div class="flex flex-col gap-1">
       <InputText name="full_name" type="text" placeholder="Full Name" fluid />
@@ -127,7 +128,7 @@ const resolver = zodResolver(
         .email({ message: "Must be a valid email address." }),
       password: z
         .string()
-        .min(3, { message: "Minimum 3 characters." })
+        .min(8, { message: "Password must be at least 8 characters" })
         .refine((value) => /[a-z]/.test(value), {
           message: "Must have a lowercase letter.",
         })

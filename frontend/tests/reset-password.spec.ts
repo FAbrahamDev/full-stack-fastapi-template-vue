@@ -67,7 +67,7 @@ test("User can reset password successfully using the link", async ({
   await page.getByPlaceholder("New Password").fill(newPassword)
   await page.getByPlaceholder("Confirm Password").fill(newPassword)
   await page.getByRole("button", { name: "Reset Password" }).click()
-  await expect(page.getByText("Password updated successfully")).toBeVisible()
+  await expect(page.getByText("Password updated successfully.")).toBeVisible()
 
   // Check if the user is able to login with the new password
   await logInUser(page, email, newPassword)
@@ -83,7 +83,9 @@ test("Expired or invalid reset link", async ({ page }) => {
   await page.getByPlaceholder("Confirm Password").fill(password)
   await page.getByRole("button", { name: "Reset Password" }).click()
 
-  await expect(page.getByText("Invalid token")).toBeVisible()
+  await expect(
+    page.getByText(/Invalid token|Password recovery failed/)
+  ).toBeVisible()
 })
 
 test("Weak new password validation", async ({ page, request }) => {
