@@ -4,8 +4,8 @@
     <NavigationComponent />
 
     <!-- Main Content -->
-    <main class="flex-1">
-      <div class="p-8">
+    <main class="flex-1 overflow-x-hidden">
+      <div class="px-4 md:px-8 py-8">
         <RouterView />
       </div>
     </main>

@@ -7,7 +7,7 @@
       User Settings
     </h1>
 
-    <div class="card">
+    <div class="card w-full max-w-[100vw] overflow-hidden">
       <Tabs :value="activeTab" @update:value="updateTab" scrollable>
         <TabList>
           <Tab v-for="tab in tabsConfig" :key="tab.title" :value="tab.id">

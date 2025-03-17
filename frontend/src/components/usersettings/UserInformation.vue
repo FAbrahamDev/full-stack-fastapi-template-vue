@@ -121,7 +121,7 @@ import { useToast } from "primevue/usetoast";
 import { storeToRefs } from "pinia";
 import { useAuthStore } from "@/stores/auth";
 import type { UserUpdateMe } from "@/client";
-import type { AxiosError } from "axios";
+
 import {
   usersUpdateUserMeMutation,
   usersReadUserMeQueryKey,
@@ -165,11 +165,19 @@ const { mutateAsync: updateUserInfo, isPending: isUpdatingUser } = useMutation({
     error.value = "";
     queryClient.setQueryData(usersReadUserMeQueryKey(), data);
   },
-  onError: (err: AxiosError<{ detail: string }>) => {
-    error.value =
-      (err.response?.data?.detail as string) ||
-      err.message ||
-      "Failed to update user information";
+  onError: (err) => {
+    // For validation errors, try to extract just the error message
+    const errorDetail = err.response?.data?.detail;
+    if (Array.isArray(errorDetail) && errorDetail.length > 0 && errorDetail[0]?.msg) {
+      // If it's a validation error array with messages, use the first message
+      error.value = errorDetail[0].msg;
+    } else {
+      // For other errors, use the existing approach
+      error.value =
+        (typeof errorDetail === 'string' ? errorDetail : '') ||
+        err.message ||
+        "Failed to update user information";
+    }
   },
 });
 

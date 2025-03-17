@@ -120,10 +120,18 @@ const { mutateAsync: updateItem, isPending } = useMutation({
     onClose();
   },
   onError: (err) => {
-    error.value =
-      (err.response?.data?.detail as string) ||
-      err.message ||
-      "Failed to update item";
+    // For validation errors, try to extract just the error message
+    const errorDetail = err.response?.data?.detail;
+    if (Array.isArray(errorDetail) && errorDetail.length > 0 && errorDetail[0]?.msg) {
+      // If it's a validation error array with messages, use the first message
+      error.value = errorDetail[0].msg;
+    } else {
+      // For other errors, use the existing approach
+      error.value =
+        (typeof errorDetail === 'string' ? errorDetail : '') ||
+        err.message ||
+        "Failed to update item";
+    }
   },
 });
 

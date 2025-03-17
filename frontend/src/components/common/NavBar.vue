@@ -1,28 +1,30 @@
 <template>
-  <div class="flex py-8 gap-4">
-    <FloatLabel variant="on">
-      <IconField>
+  <div class="flex flex-col sm:flex-row py-4 sm:py-6 md:py-8 gap-3 sm:gap-4">
+    <FloatLabel variant="on" class="w-full sm:w-auto">
+      <IconField class="w-full">
         <InputIcon class="pi pi-search" />
         <InputText
           id="searchInputField"
           :value="search"
           autocomplete="off"
           variant="filled"
+          class="w-full"
           @update:modelValue="$emit('update:search', $event)"
         />
       </IconField>
       <label for="searchInputField">Search</label>
     </FloatLabel>
 
-    <div class="flex-1" />
+    <div class="flex-1 hidden sm:block" />
 
     <Button
       severity="primary"
       @click="showModal = true"
-      class="text-sm md:text-base"
+      class="text-sm md:text-base w-full sm:w-auto mt-2 sm:mt-0"
     >
       <i class="pi pi-plus mr-2"></i>
-      Add {{ type }}
+      <span class="hidden xs:inline">Add {{ type }}</span>
+      <span class="xs:hidden">Add</span>
     </Button>
 
     <component :is="addModalComponent" v-model="showModal" @added="addItem" />
@@ -78,3 +80,27 @@ const addItem = (item: DatabasePublic) => {
   emit("added", item);
 };
 </script>
+
+<style scoped>
+@media (max-width: 400px) {
+  :deep(.p-inputtext) {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+
+  :deep(.p-button) {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Custom breakpoint for extra small devices */
+@media (min-width: 400px) {
+  .xs\:inline {
+    display: inline;
+  }
+
+  .xs\:hidden {
+    display: none;
+  }
+}
+</style>

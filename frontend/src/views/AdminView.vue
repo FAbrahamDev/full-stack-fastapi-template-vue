@@ -18,10 +18,10 @@
     :rowsPerPageOptions="[5, 10, 20, 50]"
     stripedRows
   >
-    <Column field="full_name" header="Full name">
+    <Column v-if="!xs" field="full_name" header="Full name">
       <template #body="slotProps">
         <div class="flex items-center gap-3">
-          <div :class="{ 'text-gray-400': !slotProps.data.full_name }">
+          <div class="line-clamp-2 break-words" :class="{ 'text-gray-400': !slotProps.data.full_name }">
             {{ slotProps.data.full_name || "N/A" }}
           </div>
           <Tag
@@ -35,13 +35,15 @@
 
     <Column field="email" header="Email">
       <template #body="slotProps">
-        <span class="truncate block">{{ slotProps.data.email }}</span>
+        <span class="line-clamp-1 break-all">{{ slotProps.data.email }}</span>
       </template>
     </Column>
 
     <Column field="is_superuser" header="Role">
       <template #body="slotProps">
-        {{ slotProps.data.is_superuser ? "Superuser" : "User" }}
+        <div class="line-clamp-1 break-all">
+          {{ slotProps.data.is_superuser ? "Superuser" : "User" }}
+        </div>
       </template>
     </Column>
 
@@ -81,6 +83,7 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { FilterMatchMode } from "@primevue/core/api";
+import { useDisplay } from "@/composables/useDisplay";
 
 import AddUserModal from "@/components/admin/AddUserModal.vue";
 import ActionsMenu from "@/components/common/ActionsMenu.vue";
@@ -98,6 +101,7 @@ import { useAuthStore } from "@/stores/auth";
 const { user: currentUser } = storeToRefs(useAuthStore());
 
 const queryClient = useQueryClient();
+const { xs } = useDisplay();
 
 const filters = ref({
   global: { value: "", matchMode: FilterMatchMode.CONTAINS },
@@ -142,9 +146,5 @@ const deleteUser = async (user: UserPublic) => {
 </script>
 
 <style scoped>
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* Removed custom truncate class as we're using Tailwind's utilities */
 </style>

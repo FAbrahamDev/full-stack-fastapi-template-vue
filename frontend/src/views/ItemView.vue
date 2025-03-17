@@ -17,23 +17,24 @@
     :rows="10"
     :rowsPerPageOptions="[5, 10, 20, 50]"
     stripedRows
+    tableStyle="width: 100%"
   >
-    <Column field="id" header="ID" style="width: 400px">
+    <Column field="id" header="ID" style="width: 400px" v-if="!xs">
       <template #body="slotProps">
-        {{ slotProps.data.id }}
+        <span class="line-clamp-1 break-all">{{ slotProps.data.id }}</span>
       </template>
     </Column>
 
     <Column field="title" header="Title">
       <template #body="slotProps">
-        <span class="truncate block">{{ slotProps.data.title }}</span>
+        <span class="line-clamp-2 break-words">{{ slotProps.data.title }}</span>
       </template>
     </Column>
 
     <Column field="description" header="Description">
       <template #body="slotProps">
         <span
-          class="truncate block"
+          class="line-clamp-2 break-words"
           :class="{ 'text-gray-400': !slotProps.data.description }"
         >
           {{ slotProps.data.description || "N/A" }}
@@ -65,6 +66,7 @@ import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import { FilterMatchMode } from "@primevue/core/api";
+import { useDisplay } from "@/composables/useDisplay";
 
 import AddItem from "@/components/items/AddItem.vue";
 import ActionsMenu from "@/components/common/ActionsMenu.vue";
@@ -78,6 +80,7 @@ import {
 import type { ItemPublic } from "@/client";
 
 const queryClient = useQueryClient();
+const { xs } = useDisplay();
 
 const filters = ref({
   global: { value: "", matchMode: FilterMatchMode.CONTAINS },
@@ -117,3 +120,7 @@ const deleteItem = async (item: ItemPublic) => {
   await deleteItemMutation({ path: { id: item.id } });
 };
 </script>
+
+<style scoped>
+/* Custom styles can be added here if needed */
+</style>
