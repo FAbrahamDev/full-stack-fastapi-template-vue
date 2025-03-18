@@ -6,10 +6,8 @@ from typing import Any
 
 import emails  # type: ignore
 import jwt
-from fastapi import HTTPException
 from jinja2 import Template
 from jwt.exceptions import InvalidTokenError
-from starlette import status
 
 from app.core import security
 from app.core.config import settings
@@ -38,11 +36,7 @@ def send_email(
     subject: str = "",
     html_content: str = "",
 ) -> None:
-    if not settings.emails_enabled:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No email provider configured. Set env var EMAILS_ENABLED=true to enable emails.",
-        )
+    assert settings.emails_enabled, "no provided configuration for email variables"
     message = emails.Message(
         subject=subject,
         html=html_content,
